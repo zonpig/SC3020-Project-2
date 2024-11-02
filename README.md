@@ -74,3 +74,9 @@ pip3 install \
     --use-pep517 \
     pygraphviz
 ```
+
+Testing Command for whatif
+
+```bash
+pytest --cov=whatif --cov-report=term --cov-report=xml:coverage.xml
+```
