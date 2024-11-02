@@ -92,6 +92,15 @@ def generate_query_plan():
     image_url = url_for("static", filename=url)
     return jsonify({"imageUrl": image_url})
 
+@app.route("/api/generate-alternative-query-plan", methods=["POST"])
+def process_whatif_query():
+    plan = request.json["plan"]
+    url = visualize_query_plan(plan)  # Generate the image
+
+    # Assuming the image is saved in a static directory
+    image_url = url_for("static", filename=url)
+    return jsonify({"imageUrl": image_url})
+
 
 if __name__ == "__main__":
     # os.add_dll_directory("C://Users/SC3020/Anaconda3/DLLs")
