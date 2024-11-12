@@ -1,6 +1,4 @@
 # Code for reading inputs and any preprocessing to make your algorithm work
-
-
 from collections import deque
 import logging
 import json
@@ -37,7 +35,7 @@ class Database:
                 database=cls.database,
                 user="postgres",
                 password="password",
-                port="5432",
+                port="5433",
             )
         return cls.connection
 

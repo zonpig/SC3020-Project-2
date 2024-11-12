@@ -1,0 +1,13 @@
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms: 
+        - "linux/amd64"  # Set the platform to linux/amd64
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - PGPORT=5433  # Set the PostgreSQL port environment variable
+    ports:
+      - "5433:5433"
