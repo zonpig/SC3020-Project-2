@@ -13,18 +13,54 @@ from psycopg2 import ProgrammingError, OperationalError
 
 class Database:
     connection = None
+    database = "TPC-H"  # Default database
+
+    @classmethod
+    def set_database(cls, new_database):
+        """
+        Updates the database name and resets the connection.
+        """
+        cls.database = new_database
+        # Close the existing connection if there is one
+        if cls.connection is not None:
+            cls.connection.close()
+            cls.connection = None  # Reset connection to ensure new one is created
 
     @classmethod
     def get_connection(cls):
+        """
+        Returns a connection to the current database.
+        """
         if cls.connection is None:
             cls.connection = psycopg2.connect(
                 host="localhost",
-                database="TPC-H",
+                database=cls.database,
                 user="postgres",
                 password="password",
                 port="5432",
             )
         return cls.connection
+
+
+####
+def get_postgres_schemas():
+    try:
+        connection = Database.get_connection()
+
+        cursor = connection.cursor()
+
+        # Query for schemas
+        cursor.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
+        schemas = [row[0] for row in cursor.fetchall()]
+
+        # Close connection
+        cursor.close()
+        connection.close()
+
+        return schemas
+    except Exception as e:
+        print("Error retrieving schemas:", e)
+        return []
 
 
 ####################################### Core Function #######################################
