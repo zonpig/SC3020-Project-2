@@ -63,7 +63,7 @@ class Database:
 
 ## Note
 
-To install pygraphviz on mac, run the following commands:
+To install pygraphviz on **Mac**, run the following commands:
 
 ```bash
 brew install graphviz
@@ -75,8 +75,35 @@ pip3 install \
     pygraphviz
 ```
 
+
+To install pygraphviz on **Windows**, do the following steps:
+
+1. Go to the website `https://www.graphviz.org/download/` and download the 64-bit EXE installer for Windows.
+2. Add Graphviz to PATH
+    1) Open System Properties: Press `Win + R`, type `sysdm.cpl`, and press **Enter**.
+    2) Go to the **Advanced** tab and click on **Environment Variables**.
+    3) Under **System Variables**, find the **Path variable** and click **Edit**.
+    4) Click **New** and add the following paths:
+       - `C:\Program Files\Graphviz\bin`
+       - `C:\Program Files\Graphviz\include`
+       - `C:\Program Files\Graphviz\lib`
+    6) Click **OK** to save the changes and close the windows.
+3. Run the following command in a new command prompt
+   
+```bash
+pip install pygraphviz --global-option=build_ext --global-option="-I<C:\Program Files\Graphviz\include>" --global-option="-L<C:\Program Files\Graphviz\lib>"
+```
+
+4. You can verify your installation by running the following code in Python:
+
+```bash
+import pygraphviz as pgv
+print(pgv.__version__)
+```
+
 Testing Command for whatif
 
 ```bash
 pytest --cov=whatif --cov-report=term --cov-report=xml:coverage.xml
 ```
+
