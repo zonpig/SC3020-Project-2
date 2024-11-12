@@ -168,34 +168,6 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="col-12">
-          <div class="card mb-4">
-            <div class="row">
-              <div class="col-9 d-flex align-items-center m-3">
-                <h6 class="mb-0">Query Result</h6>
-              </div>
-              <div class="col-2 text-end m-1">
-                <a class="btn bg-gradient-dark mb-0 mt-2 btn-sm" href="javascript:;" id="viewBlkBtn"
-                  style="display: none">
-                  <i class="fas fa-eye"></i>&nbsp;&nbsp;All Accessed Block
-                </a>
-              </div>
-            </div>
-            <div class="card-body px-0 pt-0 pb-2">
-              <div class="table-responsive p-0" style="height: 650px; overflow: scroll">
-                <table class="table align-items-center mb-0" id="queryTable"></table>
-                <nav aria-label="Page navigation example">
-                  <ul id="pagination" class="pagination">
-                    <!-- Pagination buttons will be populated here by JavaScript -->
-                  </ul>
-                </nav>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="row mb-4">
         <div class="col-lg-7 mb-lg-0 mb-4">
           <div class="card z-index-2 h-100">
@@ -208,23 +180,6 @@
           </div>
         </div>
 
-        <div class="col-lg-5 mb-lg-0 mb-4">
-          <div class="card card-carousel overflow-hidden h-100 p-0">
-            <div id="carouselExampleCaptions" class="carousel slide h-100" data-bs-ride="carousel">
-              <div class="carousel-inner border-radius-lg h-100"></div>
-              <button class="carousel-control-prev w-5 me-3" type="button" data-bs-target="#carouselExampleCaptions"
-                data-bs-slide="prev">
-                <i class="fas fa-play me-2" aria-hidden="true"></i>
-                <span class="visually-hidden">Previous</span>
-              </button>
-              <button class="carousel-control-next w-5 me-3" type="button" data-bs-target="#carouselExampleCaptions"
-                data-bs-slide="next">
-                <i class="fas fa-play text-primary me-2" aria-hidden="true"></i>
-                <span class="visually-hidden">Next</span>
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="row">
@@ -827,141 +782,78 @@
     }
 
     function runQuery(query) {
-      var cardBody = document.getElementById("visualisationCard");
-      cardBody.innerHTML = ""; // Clear existing content
-      document.getElementById("viewBlkBtn").style.display = "none";
-      document.getElementById("allAccessedBlkPane").style.display = "none";
-
-      var nav = document.querySelector("#pagination");
-      nav.innerHTML = "";
-      const tabsContainer = document.getElementById("tableTabs");
-      tabsContainer.innerHTML = "";
-      const contentContainer = document.getElementById("tableTabsContent");
-      contentContainer.innerHTML = "";
-
-      var n_query = query.replace(/\n|\t/g, " ").trim();
-
-      tables_extracted = extractTablesFromQuery(n_query.toUpperCase());
-      console.log(
-        JSON.stringify({
-          query: n_query,
-          relations: tables_extracted,
+      try {
+        var cardBody = document.getElementById("visualisationCard");
+        if (cardBody) cardBody.innerHTML = ""; // Clear existing content if element exists
+    
+        var viewBlkBtn = document.getElementById("viewBlkBtn");
+        if (viewBlkBtn) viewBlkBtn.style.display = "none";
+    
+        var allAccessedBlkPane = document.getElementById("allAccessedBlkPane");
+        if (allAccessedBlkPane) allAccessedBlkPane.style.display = "none";
+    
+        var n_query = query.replace(/\n|\t/g, " ").trim();
+    
+        tables_extracted = extractTablesFromQuery(n_query.toUpperCase());
+    
+        fetch("/api/runQuery", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: n_query,
+            relations: tables_extracted,
+          }),
         })
-      );
-      fetch("/api/runQuery", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          query: n_query,
-          relations: tables_extracted,
-        }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          let query = data.query;
-          console.log(data);
-          data = data.data;
-      
-          // Your existing code to insert content into the pre tag
-          console.log(data.haveCtids);
-          console.log("here");
-          if (data.haveCtids)
-            document.getElementById("viewBlkBtn").style.display = "block";
-
-          var viewBlkButton = document.getElementById("viewBlkBtn");
-
-          viewBlkButton.addEventListener("click", function () {
-            viewAllAccessedBlk(data.chartData);
+          .then((response) => response.json())
+          .then((data) => {
+            try {
+              let query = data.query;
+              data = data.data;
+    
+              // Display block view button if applicable
+              if (data.haveCtids && viewBlkBtn) viewBlkBtn.style.display = "block";
+    
+              if (viewBlkBtn) {
+                viewBlkBtn.addEventListener("click", function () {
+                  viewAllAccessedBlk(data.chartData);
+                });
+              }
+    
+              // Display natural language explanation in #qep_nl
+              var qep_nl = document.querySelector("#qep_nl");
+              if (qep_nl) {
+                qep_nl.innerHTML = `
+                  <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Query Result:</h6>
+                  <pre>${JSON.stringify(data.additionalDetails.naturalExplanation, null, 2)}</pre>`;
+              }
+    
+              // Load visualization only if `visualisationCard` is still in the layout
+              if (cardBody) loadTree(data.imageUrl);
+    
+              // Load additional data if necessary
+              updateHitBlock(data.additionalDetails.totalBlocks.hit_blocks);
+              updateReadBlock(data.additionalDetails.totalBlocks.read_blocks);
+              updateBufferSize(
+                data.additionalDetails.totalBlocks.hit_blocks +
+                data.additionalDetails.totalBlocks.read_blocks
+              );
+              updateTotalCost(data.additionalDetails.totalCost);
+              
+              // Skip loadChart call if charting logic was in the removed carousel component
+            } catch (innerError) {
+              console.error("Error processing data in runQuery:", innerError);
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching data from API in runQuery:", error);
           });
-          document.querySelector("#qep_nl").innerHTML = `
-    <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Query Result:</h6>
-    <pre>${JSON.stringify(
-            data.additionalDetails.naturalExplanation,
-            null,
-            2
-          )}</pre>`;
-
-          // Select the newly added pre tag
-          const preTag = document.querySelector("#qep_nl pre");
-
-          // Apply CSS styles directly via JavaScript
-          preTag.style.overflow = "auto"; // Add scrollbars when necessary
-          preTag.style.whiteSpace = "pre-wrap"; // Enable word wrapping
-          preTag.style.wordWrap = "break-word"; // Break words to prevent horizontal overflow
-          preTag.style.maxWidth = "100%"; // Set a maximum width if desired
-
-          console.log(data.chartData);
-          // Load Chart with chartData from API
-          loadChart(data.chartData);
-
-          // Load Tree (assuming you have a function loadTree that takes part of the data)
-          loadTree(data.imageUrl); // Adjust 'someTreeData' based on your actual data structure
-
-          // Load Hit Block
-          console.log("Total Blocks:", data.additionalDetails.totalBlocks);
-          console.log(
-            "Total Blocks:",
-            data.additionalDetails.totalBlocks.hit_blocks
-          );
-          updateHitBlock(data.additionalDetails.totalBlocks.hit_blocks);
-
-          // Load Read Block
-          updateReadBlock(data.additionalDetails.totalBlocks.read_blocks);
-
-          // Load Buffer Size
-          updateBufferSize(
-            data.additionalDetails.totalBlocks.hit_blocks +
-            data.additionalDetails.totalBlocks.read_blocks
-          );
-
-          // Load Total Cost
-          console.log("Total cost:", data.additionalDetails.totalCost);
-          updateTotalCost(data.additionalDetails.totalCost);
-
-          console.log(data);
-          if (!data.isAggregation && data.haveCtids) {
-            // Load Table with tableData from API
-            var tableData = data.tableData;
-            var pageSize = 10;
-            var currentPage = 1;
-            var startIndex = (currentPage - 1) * pageSize;
-            var endIndex = Math.min(
-              startIndex + pageSize,
-              tableData.record.length
-            );
-            var pageData = tableData.record.slice(startIndex, endIndex);
-            addPaginationControls(tableData, pageSize, currentPage);
-            populateTable(
-              tableData.col,
-              tableData.record,
-              pageSize,
-              currentPage,
-              data.isAggregation
-            );
-          } else {
-            // Load Table with tableData from API
-            var tableData = data.tableData;
-            var cols = tableData.col.filter(
-              (element) => !element.includes("ctid")
-            );
-
-            populateTable(
-              cols,
-              tableData.result,
-              pageSize,
-              currentPage,
-              true
-            );
-          }
-          // pageData
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-          // Handle errors here
-        });
+      } catch (error) {
+        console.error("Error in runQuery function:", error);
+      }
     }
+    
 
     function getRelationName(aliasOrRelationName, dictionary) {
       // Check if the name is an alias in the dictionary
@@ -1269,94 +1161,7 @@
       cardBody.appendChild(img); // Append the image to the card body
     }
 
-    function loadChart(chartData) {
-      var carouselInner = document.querySelector(".carousel-inner");
-      carouselInner.innerHTML = "";
-
-      chartData.forEach(function (data, index) {
-        // Create carousel item
-        var carouselItem = document.createElement("div");
-        carouselItem.className =
-          "carousel-item h-100" + (index === 0 ? " active" : "");
-
-        // Create card
-        var card = document.createElement("div");
-        card.className = "card z-index-2 h-100";
-
-        // Create card header
-        var cardHeader = document.createElement("div");
-        cardHeader.className = "card-header pb-0 pt-3 bg-transparent";
-        var title = document.createElement("h6");
-        title.className = "text-capitalize";
-        title.textContent =
-          "Block Usage Analysis - " +
-          getRelationName(data.relation_name, tables_extracted) +
-          "[Total Blocks: " +
-          data.total_blocks +
-          "]";
-        cardHeader.appendChild(title);
-
-        // Create card body
-        var cardBody = document.createElement("div");
-        cardBody.className = "card-body p-3";
-        var chartDiv = document.createElement("div");
-        chartDiv.className = "chart";
-        var canvas = document.createElement("canvas");
-        canvas.id = "chart-pie" + index;
-        canvas.className = "chart-canvas";
-        canvas.height = 300;
-        chartDiv.appendChild(canvas);
-        cardBody.appendChild(chartDiv);
-
-        // Append card to carousel item
-        card.appendChild(cardHeader);
-        card.appendChild(cardBody);
-        carouselItem.appendChild(card);
-
-        // Append carousel item to carousel
-        carouselInner.appendChild(carouselItem);
-        console.log(data.used_blocks.number);
-        console.log(data.totalBlocks);
-        // Initialize Chart.js
-        var ctx = canvas.getContext("2d");
-        new Chart(ctx, {
-          type: "pie",
-          data: {
-            labels: ["Used Block", "Remaining Block"],
-            datasets: [
-              {
-                label: "Block Usage",
-                data: [
-                  data.used_blocks.number,
-                  data.total_blocks - data.used_blocks.number,
-                ],
-                backgroundColor: [
-                  "rgba(54, 162, 235, 0.2)",
-                  "rgba(255, 206, 86, 0.2)",
-                ],
-                borderColor: [
-                  "rgba(54, 162, 235, 1)",
-                  "rgba(255, 206, 86, 1)",
-                ],
-                borderWidth: 1,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                display: true,
-                position: "right",
-              },
-            },
-          },
-        });
-        // Optionally, add a label for the total number of blocks
-      });
-    }
-
+    
     function updateHitBlock(hitBlock) {
       const hitBlockValueElement = document.getElementById("hit-block-value");
       hitBlockValueElement.textContent = `${hitBlock}`;

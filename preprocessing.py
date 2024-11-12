@@ -53,10 +53,6 @@ def get_postgres_schemas():
         cursor.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
         schemas = [row[0] for row in cursor.fetchall()]
 
-        # Close connection
-        cursor.close()
-        connection.close()
-
         return schemas
     except Exception as e:
         print("Error retrieving schemas:", e)
