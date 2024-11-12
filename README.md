@@ -76,7 +76,7 @@ pip3 install \
 ```
 
 
-To install pygraphviz on **Windows**, do the following steps:
+To install graphviz on **Windows**, do the following steps:
 
 1. Go to the website `https://www.graphviz.org/download/` and download the 64-bit EXE installer for Windows.
 2. Add Graphviz to PATH
