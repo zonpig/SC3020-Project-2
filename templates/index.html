@@ -1,410 +1,291 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <link
-      rel="apple-touch-icon"
-      sizes="76x76"
-      href="static/img/apple-icon.png"
-    />
-    <link rel="icon" type="image/png" href="static/img/postgre.png" />
-    <title>Postgre Query Execution Plan</title>
-    <!--     Fonts and icons     -->
-    <link
-      href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700"
-      rel="stylesheet"
-    />
-    <!-- Nucleo Icons -->
-    <link href="static/css/nucleo-icons.css" rel="stylesheet" />
-    <link href="static/css/nucleo-svg.css" rel="stylesheet" />
-    <link href="/assets/vendor/nucleo/css/nucleo-icons.css" rel="stylesheet" />
-    <!-- Font Awesome Icons -->
-    <script
-      src="https://kit.fontawesome.com/42d5adcbca.js"
-      crossorigin="anonymous"
-    ></script>
-    <link href="static/css/nucleo-svg.css" rel="stylesheet" />
-    <!-- CSS Files -->
-    <link
-      id="pagestyle"
-      href="static/css/argon-dashboard.css?v=2.0.4"
-      rel="stylesheet"
-    />
-    <style>
-      .pagination {
-        display: flex;
-        justify-content: center;
-        margin-top: 20px;
-      }
 
-      .pagination button {
-        margin: 0 5px;
-        padding: 5px 10px;
-        border: 1px solid #ddd;
-        background-color: #f8f9fa;
-        cursor: pointer;
-      }
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <link rel="apple-touch-icon" sizes="76x76" href="static/img/apple-icon.png" />
+  <link rel="icon" type="image/png" href="static/img/postgre.png" />
+  <title>Postgre Query Execution Plan</title>
+  <!--     Fonts and icons     -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+  <!-- Nucleo Icons -->
+  <link href="static/css/nucleo-icons.css" rel="stylesheet" />
+  <link href="static/css/nucleo-svg.css" rel="stylesheet" />
+  <link href="/assets/vendor/nucleo/css/nucleo-icons.css" rel="stylesheet" />
+  <!-- Font Awesome Icons -->
+  <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  <link href="static/css/nucleo-svg.css" rel="stylesheet" />
+  <!-- CSS Files -->
+  <link id="pagestyle" href="static/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
+  <style>
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
 
-      .pagination button.active {
-        background-color: #007bff;
-        color: white;
-        border-color: #007bff;
-      }
+    .pagination button {
+      margin: 0 5px;
+      padding: 5px 10px;
+      border: 1px solid #ddd;
+      background-color: #f8f9fa;
+      cursor: pointer;
+    }
 
-      .page-item.active .page-link {
-        color: white;
-      }
+    .pagination button.active {
+      background-color: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
 
-      /* To control stackiing for popup, show above other containers -*/
-      #dataTableModal {
-        z-index: 1050;
-        /* Adjust the value as needed */
-      }
+    .page-item.active .page-link {
+      color: white;
+    }
 
-      /* CSS for the navigation sidebar */
-      #sidenav-main {
-        z-index: 1040;
-        /* Lower value than the modal's z-index */
-      }
-    </style>
-  </head>
+    /* To control stackiing for popup, show above other containers -*/
+    #dataTableModal {
+      z-index: 1050;
+      /* Adjust the value as needed */
+    }
 
-  <body class="g-sidenav-show bg-gray-100">
-    <div class="min-height-300 bg-primary position-absolute w-100"></div>
+    /* CSS for the navigation sidebar */
+    #sidenav-main {
+      z-index: 1040;
+      /* Lower value than the modal's z-index */
+    }
+  </style>
+</head>
 
-    <!-- Navigation Side Bar-->
-    <aside
-      class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4"
-      id="sidenav-main"
-    >
-      <div class="sidenav-header">
-        <i
-          class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none"
-          aria-hidden="true"
-          id="iconSidenav"
-        ></i>
-        <a
-          class="navbar-brand m-0"
-          href=" https://www.postgresql.org "
-          target="_blank"
-        >
-          <img
-            src="static/img/postgre.png"
-            class="navbar-brand-img h-100"
-            alt=""
-          />
-          <span class="ms-1 font-weight-bold">Postgre SQL</span>
-        </a>
+<body class="g-sidenav-show bg-gray-100">
+  <div class="min-height-300 bg-primary position-absolute w-100"></div>
+
+  <!-- Navigation Side Bar-->
+  <aside
+    class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4"
+    id="sidenav-main">
+    <div class="sidenav-header">
+      <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none"
+        aria-hidden="true" id="iconSidenav"></i>
+      <a class="navbar-brand m-0" href=" https://www.postgresql.org " target="_blank">
+        <img src="static/img/postgre.png" class="navbar-brand-img h-100" alt="" />
+        <span class="ms-1 font-weight-bold">Postgre SQL</span>
+      </a>
+    </div>
+    <hr class="horizontal dark mt-0" />
+    <div class="sidenav-footer mx-3">
+      <div class="card card-plain shadow-none" id="sidenavCard">
+        <img class="w-50 mx-auto" src="static/img/illustrations/icon-documentation.svg" alt="sidebar_illustration" />
+        <div class="card-body text-center p-3 w-100 pt-0">
+          <div class="docs-info">
+            <h6 class="mb-0">More Info?</h6>
+            <p class="text-xs font-weight-bold mb-0">Please check our docs</p>
+          </div>
+        </div>
       </div>
-      <hr class="horizontal dark mt-0" />
-      <div class="sidenav-footer mx-3">
-        <div class="card card-plain shadow-none" id="sidenavCard">
-          <img
-            class="w-50 mx-auto"
-            src="static/img/illustrations/icon-documentation.svg"
-            alt="sidebar_illustration"
-          />
-          <div class="card-body text-center p-3 w-100 pt-0">
-            <div class="docs-info">
-              <h6 class="mb-0">More Info?</h6>
-              <p class="text-xs font-weight-bold mb-0">Please check our docs</p>
-            </div>
+      <a href="https://github.com/zlxor/SC3020-Grp20-Project2" target="_blank"
+        class="btn btn-dark btn-sm w-100 mb-3">Our Github</a>
+      <a class="btn btn-primary btn-sm mb-0 w-100" type="button">Email Us</a>
+    </div>
+    <hr class="horizontal dark mt-0" />
+    <div class="sidenav-footer mx-3">
+      <div class="card card-plain shadow-none" id="sidenavCard">
+        <div class="card-body text-center p-3 w-100 pt-0">
+          <div class="docs-info">
+            <h6 class="mb-0">Choose Schema</h6>
           </div>
         </div>
-        <a
-          href="https://github.com/zlxor/SC3020-Grp20-Project2"
-          target="_blank"
-          class="btn btn-dark btn-sm w-100 mb-3"
-          >Our Github</a
-        >
-        <a class="btn btn-primary btn-sm mb-0 w-100" type="button">Email Us</a>
       </div>
-    </aside>
+      <!-- Dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="schemaDropdown"
+          data-bs-toggle="dropdown" aria-expanded="false">
+          Select Schema
+        </button>
+        <ul class="dropdown-menu w-100" aria-labelledby="schemaDropdown" id="schemaDropdownMenu">
+          <!-- Schema options will be added here dynamically -->
+        </ul>
+      </div>
 
-    <!-- Main Content Area-->
-    <main
-      class="main-content position-relative border-radius-lg"
-      style="margin-left: 15rem"
-    >
-      <!-- End Navbar -->
-      <div class="container-fluid py-3">
-        <div class="row mb-4">
-          <div class="col-md-7">
-            <div class="card">
-              <div class="card-header pb-0 px-3">
-                <div class="row">
-                  <div class="col-6 d-flex align-items-center">
-                    <h6 class="mb-0">Sample SQL Query</h6>
-                  </div>
-                  <div class="col-6 text-end">
-                    <a
-                      class="btn bg-gradient-dark mb-0"
-                      href="javascript:;"
-                      onclick="openAddQueryModal();"
-                    >
-                      <i class="fas fa-plus"></i>&nbsp;&nbsp;Add New Query
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="card-body pt-4 p-3"
-                style="height: 600px; overflow: scroll"
-              >
-                <ul class="list-group"></ul>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-5">
-            <div class="card h-100 mb-4">
-              <div class="card-header pb-0 px-3">
-                <div class="row">
-                  <h6 class="mb-0">Natural Language Description of QEP</h6>
-                </div>
-              </div>
-              <div
-                class="card-body pt-4 p-3"
-                id="qep_nl"
-                style="height: 600px; overflow: scroll"
-              >
-                <h6
-                  class="text-uppercase text-body text-xs font-weight-bolder mb-3"
-                >
-                  Please select / input a query.
-                </h6>
-              </div>
-            </div>
-          </div>
-        </div>
+    </div>
 
-        <div class="row" style="display: none" id="allAccessedBlkPane">
-          <div class="col-12">
-            <div class="card mb-4">
-              <div class="card-header">
-                <ul
-                  class="nav nav-tabs card-header-tabs"
-                  id="tableTabs"
-                  role="tablist"
-                >
-                  <!-- Tabs will be generated here -->
-                </ul>
-              </div>
-              <div class="card-body">
-                <div class="tab-content" id="tableTabsContent">
-                  <!-- Tab panes will be generated here -->
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+  </aside>
 
-        <div class="row">
-          <div class="col-12">
-            <div class="card mb-4">
+  <!-- Main Content Area-->
+  <main class="main-content position-relative border-radius-lg" style="margin-left: 15rem">
+    <!-- End Navbar -->
+    <div class="container-fluid py-3">
+      <div class="row mb-4">
+        <div class="col-md-7">
+          <div class="card">
+            <div class="card-header pb-0 px-3">
               <div class="row">
-                <div class="col-9 d-flex align-items-center m-3">
-                  <h6 class="mb-0">Query Result</h6>
+                <div class="col-6 d-flex align-items-center">
+                  <h6 class="mb-0">Sample SQL Query</h6>
                 </div>
-                <div class="col-2 text-end m-1">
-                  <a
-                    class="btn bg-gradient-dark mb-0 mt-2 btn-sm"
-                    href="javascript:;"
-                    id="viewBlkBtn"
-                    style="display: none"
-                  >
-                    <i class="fas fa-eye"></i>&nbsp;&nbsp;All Accessed Block
+                <div class="col-6 text-end">
+                  <a class="btn bg-gradient-dark mb-0" href="javascript:;" onclick="openAddQueryModal();">
+                    <i class="fas fa-plus"></i>&nbsp;&nbsp;Add New Query
                   </a>
                 </div>
               </div>
-              <div class="card-body px-0 pt-0 pb-2">
-                <div
-                  class="table-responsive p-0"
-                  style="height: 650px; overflow: scroll"
-                >
-                  <table
-                    class="table align-items-center mb-0"
-                    id="queryTable"
-                  ></table>
-                  <nav aria-label="Page navigation example">
-                    <ul id="pagination" class="pagination">
-                      <!-- Pagination buttons will be populated here by JavaScript -->
-                    </ul>
-                  </nav>
-                </div>
+            </div>
+            <div class="card-body pt-4 p-3" style="height: 600px; overflow: scroll">
+              <ul class="list-group"></ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="card h-100 mb-4">
+            <div class="card-header pb-0 px-3">
+              <div class="row">
+                <h6 class="mb-0">Natural Language Description of QEP</h6>
+              </div>
+            </div>
+            <div class="card-body pt-4 p-3" id="qep_nl" style="height: 600px; overflow: scroll">
+              <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">
+                Please select / input a query.
+              </h6>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="display: none" id="allAccessedBlkPane">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header">
+              <ul class="nav nav-tabs card-header-tabs" id="tableTabs" role="tablist">
+                <!-- Tabs will be generated here -->
+              </ul>
+            </div>
+            <div class="card-body">
+              <div class="tab-content" id="tableTabsContent">
+                <!-- Tab panes will be generated here -->
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="row mb-4">
-          <div class="col-lg-7 mb-lg-0 mb-4">
-            <div class="card z-index-2 h-100">
-              <div class="card-header pb-0 pt-3 bg-transparent">
-                <h6 class="text-capitalize">
-                  Query Execution Plan Visualisation
-                </h6>
-              </div>
-              <div class="card-body p-3" id="visualisationCard"></div>
+      <div class="row mb-4">
+        <div class="col-lg-7 mb-lg-0 mb-4">
+          <div class="card z-index-2 h-100">
+            <div class="card-header pb-0 pt-3 bg-transparent">
+              <h6 class="text-capitalize">
+                Query Execution Plan Visualisation
+              </h6>
             </div>
-          </div>
-
-          <div class="col-lg-5 mb-lg-0 mb-4">
-            <div class="card card-carousel overflow-hidden h-100 p-0">
-              <div
-                id="carouselExampleCaptions"
-                class="carousel slide h-100"
-                data-bs-ride="carousel"
-              >
-                <div class="carousel-inner border-radius-lg h-100"></div>
-                <button
-                  class="carousel-control-prev w-5 me-3"
-                  type="button"
-                  data-bs-target="#carouselExampleCaptions"
-                  data-bs-slide="prev"
-                >
-                  <i class="fas fa-play me-2" aria-hidden="true"></i>
-                  <span class="visually-hidden">Previous</span>
-                </button>
-                <button
-                  class="carousel-control-next w-5 me-3"
-                  type="button"
-                  data-bs-target="#carouselExampleCaptions"
-                  data-bs-slide="next"
-                >
-                  <i
-                    class="fas fa-play text-primary me-2"
-                    aria-hidden="true"
-                  ></i>
-                  <span class="visually-hidden">Next</span>
-                </button>
-              </div>
-            </div>
+            <div class="card-body p-3" id="visualisationCard"></div>
           </div>
         </div>
 
-        <div class="row">
-          <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="numbers">
-                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
-                        Hit Block
-                      </p>
-                      <h5 class="font-weight-bolder" id="hit-block-value">
-                        Please select / input a query
-                      </h5>
-                      <!-- <p class="mb-0">
+      </div>
+
+      <div class="row">
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                      Hit Block
+                    </p>
+                    <h5 class="font-weight-bolder" id="hit-block-value">
+                      Please select / input a query
+                    </h5>
+                    <!-- <p class="mb-0">
                       <span class="text-danger text-sm font-weight-bolder">-2%</span>
                       since last quarter
                     </p> -->
-                    </div>
                   </div>
-                  <div class="col-4 text-end">
-                    <div
-                      class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle"
-                    >
-                      <i class="fa fa-bell text-lg opacity-10"></i>
-                      <!-- Replace with an appropriate class for a database icon -->
-                    </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
+                    <i class="fa fa-bell text-lg opacity-10"></i>
+                    <!-- Replace with an appropriate class for a database icon -->
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-xl-3 col-sm-6">
-            <div class="card">
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="numbers">
-                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
-                        Read Block
-                      </p>
-                      <h5 class="font-weight-bolder" id="read-block-value">
-                        Please select / input a query
-                      </h5>
-                      <!-- <p class="mb-0">
+        </div>
+        <div class="col-xl-3 col-sm-6">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                      Read Block
+                    </p>
+                    <h5 class="font-weight-bolder" id="read-block-value">
+                      Please select / input a query
+                    </h5>
+                    <!-- <p class="mb-0">
                       <span class="text-success text-sm font-weight-bolder">+5%</span> than last month
                     </p> -->
-                    </div>
                   </div>
-                  <div class="col-4 text-end">
-                    <div
-                      class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle"
-                    >
-                      <i class="fa fa-clock text-lg opacity-10"></i>
-                      <!-- Replace with an appropriate class for a database icon -->
-                    </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
+                    <i class="fa fa-clock text-lg opacity-10"></i>
+                    <!-- Replace with an appropriate class for a database icon -->
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="numbers">
-                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
-                        Buffer Size
-                      </p>
-                      <h5 class="font-weight-bolder" id="buffer-size-value">
-                        Please select / input a query
-                      </h5>
-                      <!-- <p class="mb-0" id="buffer-size-change"> -->
-                      <!-- can insert additional info if needed, using updateBufferSize function -->
-                      <!-- </p> -->
-                    </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                      Buffer Size
+                    </p>
+                    <h5 class="font-weight-bolder" id="buffer-size-value">
+                      Please select / input a query
+                    </h5>
+                    <!-- <p class="mb-0" id="buffer-size-change"> -->
+                    <!-- can insert additional info if needed, using updateBufferSize function -->
+                    <!-- </p> -->
                   </div>
-                  <div class="col-4 text-end">
-                    <div
-                      class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle"
-                    >
-                      <i
-                        class="ni ni-chart-bar-32 text-lg opacity-10"
-                        aria-hidden="true"
-                      ></i>
-                      <!-- Replace with an appropriate class for a gauge/meter icon -->
-                    </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
+                    <i class="ni ni-chart-bar-32 text-lg opacity-10" aria-hidden="true"></i>
+                    <!-- Replace with an appropriate class for a gauge/meter icon -->
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="numbers">
-                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
-                        Total Cost
-                      </p>
-                      <h5 class="font-weight-bolder" id="total-cost-value">
-                        Please select / input a query
-                      </h5>
-                      <!-- <p class="mb-0" id="total-cost-change">>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                      Total Cost
+                    </p>
+                    <h5 class="font-weight-bolder" id="total-cost-value">
+                      Please select / input a query
+                    </h5>
+                    <!-- <p class="mb-0" id="total-cost-change">>
                       <span class="text-success text-sm font-weight-bolder">+3%</span>
                       since last week
                     </p> -->
-                    </div>
                   </div>
-                  <div class="col-4 text-end">
-                    <div
-                      class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle"
-                    >
-                      <i
-                        class="ni ni-money-coins text-lg opacity-10"
-                        aria-hidden="true"
-                      ></i>
-                    </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle">
+                    <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
                   </div>
                 </div>
               </div>
@@ -412,148 +293,86 @@
           </div>
         </div>
       </div>
-      <!-- Bootstrap Modal -->
-      <div
-        class="modal fade"
-        id="editQueryModal"
-        tabindex="-1"
-        aria-labelledby="editQueryModalLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="editQueryModalLabel">Edit Query</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div class="modal-body">
-              <textarea
-                id="modal-query-input"
-                class="form-control"
-                rows="4"
-              ></textarea>
-            </div>
-            <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                class="btn btn-primary"
-                id="modal-save-btn"
-                onclick="saveEditedQuery()"
-              >
-                Run
-              </button>
-            </div>
+    </div>
+    <!-- Bootstrap Modal -->
+    <div class="modal fade" id="editQueryModal" tabindex="-1" aria-labelledby="editQueryModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editQueryModalLabel">Edit Query</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <textarea id="modal-query-input" class="form-control" rows="4"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              Close
+            </button>
+            <button type="button" class="btn btn-primary" id="modal-save-btn" onclick="saveEditedQuery()">
+              Run
+            </button>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Bootstrap Modal for Adding New Query -->
-      <div
-        class="modal fade"
-        id="addQueryModal"
-        tabindex="-1"
-        aria-labelledby="addQueryModalLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="addQueryModalLabel">Add New Query</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div class="modal-body">
-              <textarea
-                id="add-modal-query-input"
-                class="form-control"
-                rows="4"
-              ></textarea>
-            </div>
-            <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                class="btn btn-primary"
-                id="add-modal-save-btn"
-                onclick="saveNewQuery()"
-              >
-                Run
-              </button>
-            </div>
+    <!-- Bootstrap Modal for Adding New Query -->
+    <div class="modal fade" id="addQueryModal" tabindex="-1" aria-labelledby="addQueryModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addQueryModalLabel">Add New Query</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <textarea id="add-modal-query-input" class="form-control" rows="4"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              Close
+            </button>
+            <button type="button" class="btn btn-primary" id="add-modal-save-btn" onclick="saveNewQuery()">
+              Run
+            </button>
           </div>
         </div>
       </div>
+    </div>
 
-      <div
-        class="modal fade"
-        id="dataTableModal"
-        tabindex="-1"
-        aria-labelledby="dataTableModalLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog modal-xl">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="dataTableModalLabel">Data Table</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div class="modal-body">
-              <div id="tableContainer">
-                <!-- Wrapping div for the table with horizontal scroll -->
-                <div class="table-responsive">
-                  <table id="queryTable" class="table">
-                    <!-- Table headers will be populated dynamically -->
-                    <thead></thead>
-                    <!-- Table rows will be populated dynamically -->
-                    <tbody></tbody>
-                  </table>
-                </div>
+    <div class="modal fade" id="dataTableModal" tabindex="-1" aria-labelledby="dataTableModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="dataTableModalLabel">Data Table</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="tableContainer">
+              <!-- Wrapping div for the table with horizontal scroll -->
+              <div class="table-responsive">
+                <table id="queryTable" class="table">
+                  <!-- Table headers will be populated dynamically -->
+                  <thead></thead>
+                  <!-- Table rows will be populated dynamically -->
+                  <tbody></tbody>
+                </table>
               </div>
-              <nav aria-label="Table pagination">
-                <ul id="pagination" class="pagination"></ul>
-              </nav>
             </div>
-            <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-            </div>
+            <nav aria-label="Table pagination">
+              <ul id="pagination" class="pagination"></ul>
+            </nav>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              Close
+            </button>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Bootstrap Modal for Displaying Table (FOR REFERENCE)
+    <!-- Bootstrap Modal for Displaying Table (FOR REFERENCE)
     <div class="modal fade" id="dataTableModal" tabindex="-1" aria-labelledby="dataTableModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -573,154 +392,106 @@
         </div>
       </div>
     </div> -->
-    </main>
-    <div class="fixed-plugin">
-      <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
-        <i class="fa fa-cog py-2"> </i>
-      </a>
-      <div class="card shadow-lg">
-        <div class="card-header pb-0 pt-3">
-          <div class="float-start">
-            <h5 class="mt-3 mb-0">Argon Configurator</h5>
-            <p>See our dashboard options.</p>
-          </div>
-          <div class="float-end mt-4">
-            <button
-              class="btn btn-link text-dark p-0 fixed-plugin-close-button"
-            >
-              <i class="fa fa-close"></i>
-            </button>
-          </div>
-          <!-- End Toggle Button -->
+  </main>
+  <div class="fixed-plugin">
+    <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
+      <i class="fa fa-cog py-2"> </i>
+    </a>
+    <div class="card shadow-lg">
+      <div class="card-header pb-0 pt-3">
+        <div class="float-start">
+          <h5 class="mt-3 mb-0">Argon Configurator</h5>
+          <p>See our dashboard options.</p>
         </div>
-        <hr class="horizontal dark my-1" />
-        <div class="card-body pt-sm-3 pt-0 overflow-auto">
-          <!-- Sidebar Backgrounds -->
-          <div>
-            <h6 class="mb-0">Sidebar Colors</h6>
+        <div class="float-end mt-4">
+          <button class="btn btn-link text-dark p-0 fixed-plugin-close-button">
+            <i class="fa fa-close"></i>
+          </button>
+        </div>
+        <!-- End Toggle Button -->
+      </div>
+      <hr class="horizontal dark my-1" />
+      <div class="card-body pt-sm-3 pt-0 overflow-auto">
+        <!-- Sidebar Backgrounds -->
+        <div>
+          <h6 class="mb-0">Sidebar Colors</h6>
+        </div>
+        <a href="javascript:void(0)" class="switch-trigger background-color">
+          <div class="badge-colors my-2 text-start">
+            <span class="badge filter bg-gradient-primary active" data-color="primary"
+              onclick="sidebarColor(this)"></span>
+            <span class="badge filter bg-gradient-dark" data-color="dark" onclick="sidebarColor(this)"></span>
+            <span class="badge filter bg-gradient-info" data-color="info" onclick="sidebarColor(this)"></span>
+            <span class="badge filter bg-gradient-success" data-color="success" onclick="sidebarColor(this)"></span>
+            <span class="badge filter bg-gradient-warning" data-color="warning" onclick="sidebarColor(this)"></span>
+            <span class="badge filter bg-gradient-danger" data-color="danger" onclick="sidebarColor(this)"></span>
           </div>
-          <a href="javascript:void(0)" class="switch-trigger background-color">
-            <div class="badge-colors my-2 text-start">
-              <span
-                class="badge filter bg-gradient-primary active"
-                data-color="primary"
-                onclick="sidebarColor(this)"
-              ></span>
-              <span
-                class="badge filter bg-gradient-dark"
-                data-color="dark"
-                onclick="sidebarColor(this)"
-              ></span>
-              <span
-                class="badge filter bg-gradient-info"
-                data-color="info"
-                onclick="sidebarColor(this)"
-              ></span>
-              <span
-                class="badge filter bg-gradient-success"
-                data-color="success"
-                onclick="sidebarColor(this)"
-              ></span>
-              <span
-                class="badge filter bg-gradient-warning"
-                data-color="warning"
-                onclick="sidebarColor(this)"
-              ></span>
-              <span
-                class="badge filter bg-gradient-danger"
-                data-color="danger"
-                onclick="sidebarColor(this)"
-              ></span>
-            </div>
-          </a>
-          <!-- Sidenav Type -->
-          <div class="mt-3">
-            <h6 class="mb-0">Sidenav Type</h6>
-            <p class="text-sm">Choose between 2 different sidenav types.</p>
+        </a>
+        <!-- Sidenav Type -->
+        <div class="mt-3">
+          <h6 class="mb-0">Sidenav Type</h6>
+          <p class="text-sm">Choose between 2 different sidenav types.</p>
+        </div>
+        <div class="d-flex">
+          <button class="btn bg-gradient-primary w-100 px-3 mb-2 active me-2" data-class="bg-white"
+            onclick="sidebarType(this)">
+            White
+          </button>
+          <button class="btn bg-gradient-primary w-100 px-3 mb-2" data-class="bg-default" onclick="sidebarType(this)">
+            Dark
+          </button>
+        </div>
+        <p class="text-sm d-xl-none d-block mt-2">
+          You can change the sidenav type just on desktop view.
+        </p>
+        <hr class="horizontal dark my-sm-4" />
+        <div class="mt-2 mb-5 d-flex">
+          <h6 class="mb-0">Light / Dark</h6>
+          <div class="form-check form-switch ps-0 ms-auto my-auto">
+            <input class="form-check-input mt-1 ms-auto" type="checkbox" id="dark-version" onclick="darkMode(this)" />
           </div>
-          <div class="d-flex">
-            <button
-              class="btn bg-gradient-primary w-100 px-3 mb-2 active me-2"
-              data-class="bg-white"
-              onclick="sidebarType(this)"
-            >
-              White
-            </button>
-            <button
-              class="btn bg-gradient-primary w-100 px-3 mb-2"
-              data-class="bg-default"
-              onclick="sidebarType(this)"
-            >
-              Dark
-            </button>
-          </div>
-          <p class="text-sm d-xl-none d-block mt-2">
-            You can change the sidenav type just on desktop view.
-          </p>
-          <hr class="horizontal dark my-sm-4" />
-          <div class="mt-2 mb-5 d-flex">
-            <h6 class="mb-0">Light / Dark</h6>
-            <div class="form-check form-switch ps-0 ms-auto my-auto">
-              <input
-                class="form-check-input mt-1 ms-auto"
-                type="checkbox"
-                id="dark-version"
-                onclick="darkMode(this)"
-              />
-            </div>
-          </div>
-          <a
-            class="btn bg-gradient-dark w-100"
-            href="https://www.creative-tim.com/product/argon-dashboard"
-            >Free Download</a
-          >
-          <a
-            class="btn btn-outline-dark w-100"
-            href="https://www.creative-tim.com/learning-lab/bootstrap/license/argon-dashboard"
-            >View documentation</a
-          >
-          <div class="w-100 text-center">
-            <a
-              class="github-button"
-              href="https://github.com/creativetimofficial/argon-dashboard"
-              data-icon="octicon-star"
-              data-size="large"
-              data-show-count="true"
-              aria-label="Star creativetimofficial/argon-dashboard on GitHub"
-              >Star</a
-            >
-          </div>
+        </div>
+        <a class="btn bg-gradient-dark w-100" href="https://www.creative-tim.com/product/argon-dashboard">Free
+          Download</a>
+        <a class="btn btn-outline-dark w-100"
+          href="https://www.creative-tim.com/learning-lab/bootstrap/license/argon-dashboard">View documentation</a>
+        <div class="w-100 text-center">
+          <a class="github-button" href="https://github.com/creativetimofficial/argon-dashboard"
+            data-icon="octicon-star" data-size="large" data-show-count="true"
+            aria-label="Star creativetimofficial/argon-dashboard on GitHub">Star</a>
         </div>
       </div>
     </div>
-    <!--   Core JS Files   -->
-    <script src="static/js/core/popper.min.js"></script>
-    <script src="static/js/core/bootstrap.min.js"></script>
-    <script src="static/js/plugins/perfect-scrollbar.min.js"></script>
-    <script src="static/js/plugins/smooth-scrollbar.min.js"></script>
-    <script src="static/js/plugins/chartjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  </div>
+  <!--   Core JS Files   -->
+  <script src="static/js/core/popper.min.js"></script>
+  <script src="static/js/core/bootstrap.min.js"></script>
+  <script src="static/js/plugins/perfect-scrollbar.min.js"></script>
+  <script src="static/js/plugins/smooth-scrollbar.min.js"></script>
+  <script src="static/js/plugins/chartjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
-    <script>
-      window.onload = function () {
-        populateQueries();
-      };
-      function populateQueries() {
-        fetch("/api/getSampleQueries")
-          .then((response) => response.json())
-          .then((queries) => {
-            const listGroup = document.querySelector(".list-group");
-            listGroup.innerHTML = ""; // Clear existing list
+  <script>
+    window.onload = function () {
+      populateQueries();
+      getSchemas();
+    };
+    function populateQueries() {
+      fetch("/api/getSampleQueries")
+        .then((response) => response.json())
+        .then((queries) => {
+          const listGroup = document.querySelector(".list-group");
+          listGroup.innerHTML = ""; // Clear existing list
 
-            queries.forEach((query, index) => {
-              const listItem = document.createElement("li");
-              listItem.setAttribute("id", `query-item-${index}`);
-              listItem.setAttribute(
-                "class",
-                "list-group-item border-0 d-flex align-items-center p-3 mb-1 bg-gray-100 border-radius-lg"
-              );
-              listItem.innerHTML = `
+          queries.forEach((query, index) => {
+            const listItem = document.createElement("li");
+            listItem.setAttribute("id", `query-item-${index}`);
+            listItem.setAttribute(
+              "class",
+              "list-group-item border-0 d-flex align-items-center p-3 mb-1 bg-gray-100 border-radius-lg"
+            );
+            listItem.innerHTML = `
                 <div class="me-auto">
                     <span class="text-sm" id="query-text-${index}">${query.toUpperCase()}</span>
                 </div>
@@ -728,93 +499,169 @@
                     <button class="btn btn-link text-dark px-3 mb-0 edit-query-btn" data-query="${query}" data-index="${index}"><i class="fas fa-pencil-alt text-dark me-2" aria-hidden="true"></i>Edit</button>
                     <button class="btn btn-link text-primary px-3 mb-0 run-query-btn" data-query="${query}"><i class="fas fa-play text-primary me-2" aria-hidden="true"></i>Run</button>
                 </div>`;
-              listGroup.appendChild(listItem);
-            });
+            listGroup.appendChild(listItem);
+          });
 
-            document.querySelectorAll(".edit-query-btn").forEach((button) => {
-              button.addEventListener("click", function () {
-                const query = this.getAttribute("data-query");
-                const index = this.getAttribute("data-index");
-                editQuery(query, index);
-              });
-            });
-
-            document.querySelectorAll(".run-query-btn").forEach((button) => {
-              button.addEventListener("click", function () {
-                runQuery(this.getAttribute("data-query"));
-              });
+          document.querySelectorAll(".edit-query-btn").forEach((button) => {
+            button.addEventListener("click", function () {
+              const query = this.getAttribute("data-query");
+              const index = this.getAttribute("data-index");
+              editQuery(query, index);
             });
           });
+
+          document.querySelectorAll(".run-query-btn").forEach((button) => {
+            button.addEventListener("click", function () {
+              runQuery(this.getAttribute("data-query"));
+            });
+          });
+        });
+    }
+
+    function getSchemas() {
+      fetch('/api/get_schemas') // Ensure this matches your Flask endpoint
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(schemas => {
+          console.log('Schemas:', schemas);
+    
+          const dropdownMenu = document.getElementById('schemaDropdownMenu');
+          const dropdownButton = document.getElementById('schemaDropdown');
+    
+          // Check if dropdownMenu exists
+          if (!dropdownMenu) {
+            console.error('Dropdown menu element not found');
+            return;
+          }
+    
+          // Clear the existing items
+          dropdownMenu.innerHTML = '';
+    
+          // Add the default option if 'TPC-H' is in the schemas
+          let defaultSchema = 'Select Schema';
+          if (schemas.includes('TPC-H')) {
+            defaultSchema = 'TPC-H'; // Set default to TPC-H if it exists
+          }
+    
+          // Set the button text to the default schema
+          dropdownButton.textContent = defaultSchema;
+    
+          // Populate dropdown with schema options
+          schemas.forEach(schema => {
+            const listItem = document.createElement('li');
+            const link = document.createElement('a');
+    
+            link.className = 'dropdown-item';
+            link.href = '#';
+            link.textContent = schema;
+    
+            link.addEventListener('click', () => {
+              // Update the dropdown button text
+              dropdownButton.textContent = schema;
+    
+              // Call the function to notify the server about the selected schema
+              updateSelectedSchema(schema);
+            });
+    
+            listItem.appendChild(link);
+            dropdownMenu.appendChild(listItem);
+          });
+        })
+        .catch(error => console.error('Error fetching schemas:', error));
+    }
+    
+    function updateSelectedSchema(selectedSchema) {
+      fetch(`/api/set_database?database=${selectedSchema}`, {
+        method: 'GET',  // You could also use POST depending on your preference
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(response => {
+          if (response.ok) {
+            console.log(`Schema updated to: ${selectedSchema}`);
+          } else {
+            throw new Error(`Failed to update schema. Status: ${response.status}`);
+          }
+        })
+        .catch(error => {
+          console.error('Error updating schema:', error);
+        });
+    }
+    
+
+    function editQuery(query, index) {
+      const modal = new bootstrap.Modal(
+        document.getElementById("editQueryModal")
+      );
+      document.getElementById("modal-query-input").value =
+        query.toUpperCase();
+      document
+        .getElementById("modal-save-btn")
+        .setAttribute("data-index", index);
+      modal.show();
+    }
+
+    function saveEditedQuery() {
+      const index = document
+        .getElementById("modal-save-btn")
+        .getAttribute("data-index");
+      const editedQuery = document
+        .getElementById("modal-query-input")
+        .value.toUpperCase();
+      // Update the text content of the query in the list
+      document.getElementById(`query-text-${index}`).textContent =
+        editedQuery;
+      // Update the data-query attribute of the Run button to the new query
+      const runButton = document.querySelector(
+        `#query-item-${index} .run-query-btn`
+      );
+      runButton.setAttribute("data-query", editedQuery);
+
+      // Run the edited query
+      runQuery(editedQuery);
+
+      // Close the modal
+      const modal = bootstrap.Modal.getInstance(
+        document.getElementById("editQueryModal")
+      );
+      modal.hide();
+    }
+
+    function openAddQueryModal() {
+      document.getElementById("add-modal-query-input").value = ""; // Clear any existing input
+      const modal = new bootstrap.Modal(
+        document.getElementById("addQueryModal")
+      );
+      modal.show();
+    }
+
+    function saveNewQuery() {
+      const newQuery = document
+        .getElementById("add-modal-query-input")
+        .value.toUpperCase();
+
+      // Check if the new query is not empty
+      if (newQuery.trim() === "") {
+        alert("Please enter a query.");
+        return; // Exit the function if the query is empty
       }
 
-      function editQuery(query, index) {
-        const modal = new bootstrap.Modal(
-          document.getElementById("editQueryModal")
-        );
-        document.getElementById("modal-query-input").value =
-          query.toUpperCase();
-        document
-          .getElementById("modal-save-btn")
-          .setAttribute("data-index", index);
-        modal.show();
-      }
+      // Assuming you have a list group in your HTML to display queries
+      const listGroup = document.querySelector(".list-group");
+      const index = listGroup.children.length; // New index for the new query
+      const listItem = document.createElement("li");
+      listItem.setAttribute("id", `query-item-${index}`);
+      listItem.setAttribute(
+        "class",
+        "list-group-item border-0 d-flex align-items-center p-3 mb-1 bg-gray-100 border-radius-lg"
+      );
 
-      function saveEditedQuery() {
-        const index = document
-          .getElementById("modal-save-btn")
-          .getAttribute("data-index");
-        const editedQuery = document
-          .getElementById("modal-query-input")
-          .value.toUpperCase();
-        // Update the text content of the query in the list
-        document.getElementById(`query-text-${index}`).textContent =
-          editedQuery;
-        // Update the data-query attribute of the Run button to the new query
-        const runButton = document.querySelector(
-          `#query-item-${index} .run-query-btn`
-        );
-        runButton.setAttribute("data-query", editedQuery);
-
-        // Run the edited query
-        runQuery(editedQuery);
-
-        // Close the modal
-        const modal = bootstrap.Modal.getInstance(
-          document.getElementById("editQueryModal")
-        );
-        modal.hide();
-      }
-
-      function openAddQueryModal() {
-        document.getElementById("add-modal-query-input").value = ""; // Clear any existing input
-        const modal = new bootstrap.Modal(
-          document.getElementById("addQueryModal")
-        );
-        modal.show();
-      }
-
-      function saveNewQuery() {
-        const newQuery = document
-          .getElementById("add-modal-query-input")
-          .value.toUpperCase();
-
-        // Check if the new query is not empty
-        if (newQuery.trim() === "") {
-          alert("Please enter a query.");
-          return; // Exit the function if the query is empty
-        }
-
-        // Assuming you have a list group in your HTML to display queries
-        const listGroup = document.querySelector(".list-group");
-        const index = listGroup.children.length; // New index for the new query
-        const listItem = document.createElement("li");
-        listItem.setAttribute("id", `query-item-${index}`);
-        listItem.setAttribute(
-          "class",
-          "list-group-item border-0 d-flex align-items-center p-3 mb-1 bg-gray-100 border-radius-lg"
-        );
-
-        listItem.innerHTML = `
+      listItem.innerHTML = `
           <div class="me-auto">
               <span class="text-sm" id="query-text-${index}">${newQuery}</span>
           </div>
@@ -822,140 +669,133 @@
               <button class="btn btn-link text-dark px-3 mb-0 edit-query-btn" data-query="${newQuery}" data-index="${index}"><i class="fas fa-pencil-alt text-dark me-2" aria-hidden="true"></i>Edit</button>
               <button class="btn btn-link text-primary px-3 mb-0 run-query-btn" data-query="${newQuery}"><i class="fas fa-play text-primary me-2" aria-hidden="true"></i>Run</button>
           </div>`;
-        listGroup.appendChild(listItem);
+      listGroup.appendChild(listItem);
 
-        // Attach event listeners to the new buttons
-        listItem
-          .querySelector(".edit-query-btn")
-          .addEventListener("click", function () {
-            editQuery(newQuery, index);
-          });
-        listItem
-          .querySelector(".run-query-btn")
-          .addEventListener("click", function () {
-            runQuery(newQuery);
-          });
+      // Attach event listeners to the new buttons
+      listItem
+        .querySelector(".edit-query-btn")
+        .addEventListener("click", function () {
+          editQuery(newQuery, index);
+        });
+      listItem
+        .querySelector(".run-query-btn")
+        .addEventListener("click", function () {
+          runQuery(newQuery);
+        });
 
-        runQuery(newQuery); // TO FIX: the query doesnt run at the moment, it only gets added to the querylist!!
+      runQuery(newQuery); // TO FIX: the query doesnt run at the moment, it only gets added to the querylist!!
 
-        // Close the modal
-        const modal = bootstrap.Modal.getInstance(
-          document.getElementById("addQueryModal")
-        );
-        modal.hide();
-      }
+      // Close the modal
+      const modal = bootstrap.Modal.getInstance(
+        document.getElementById("addQueryModal")
+      );
+      modal.hide();
+    }
 
-      function extractTablesFromQuery(sqlQuery) {
-        // List of valid table names in uppercase
-        const validTables = [
-          "REGION",
-          "NATION",
-          "PART",
-          "SUPPLIER",
-          "PARTSUPP",
-          "CUSTOMER",
-          "ORDERS",
-          "LINEITEM",
-        ];
+    function extractTablesFromQuery(sqlQuery) {
+      // List of valid table names in uppercase
+      const validTables = [
+        "REGION",
+        "NATION",
+        "PART",
+        "SUPPLIER",
+        "PARTSUPP",
+        "CUSTOMER",
+        "ORDERS",
+        "LINEITEM",
+      ];
 
-        const tokens = sqlQuery.split(/\s+|,/);
-        const tableAliases = {};
+      const tokens = sqlQuery.split(/\s+|,/);
+      const tableAliases = {};
 
-        let currentAlias = null;
+      let currentAlias = null;
 
-        for (let i = 0; i < tokens.length; i++) {
-          const token = tokens[i].trim();
-          if (validTables.includes(token)) {
-            // If the token is FROM or JOIN, set the next token as the value
-            const nextToken = tokens[i + 1].trim();
+      for (let i = 0; i < tokens.length; i++) {
+        const token = tokens[i].trim();
+        if (validTables.includes(token)) {
+          // If the token is FROM or JOIN, set the next token as the value
+          const nextToken = tokens[i + 1].trim();
 
-            if (nextToken.length === 1) {
-              // If the next token is a single character, use it as the alias key
-              currentAlias = nextToken;
-              tableAliases[currentAlias] = token;
-              i++; // Skip the next token as it has been processed
-            } else {
-              // Otherwise, use the next token as the key itself
-              currentAlias = token;
-              tableAliases[currentAlias] = token;
-            }
+          if (nextToken.length === 1) {
+            // If the next token is a single character, use it as the alias key
+            currentAlias = nextToken;
+            tableAliases[currentAlias] = token;
+            i++; // Skip the next token as it has been processed
+          } else {
+            // Otherwise, use the next token as the key itself
+            currentAlias = token;
+            tableAliases[currentAlias] = token;
           }
         }
-
-        return tableAliases;
       }
 
-      var tables_extracted;
-      function viewAllAccessedBlk(data) {
-        document.getElementById("allAccessedBlkPane").style.display = "block";
-        const tabsContainer = document.getElementById("tableTabs");
-        const contentContainer = document.getElementById("tableTabsContent");
-        tabsContainer.innerHTML = "";
-        contentContainer.innerHTML = "";
+      return tableAliases;
+    }
 
-        data.forEach((table, index) => {
-          // Create the tab
-          const tab = document.createElement("button");
-          tab.className = "nav-link" + (index === 0 ? " active" : "");
-          tab.id = `tab-${table.relation_name}`;
-          tab.setAttribute("data-bs-toggle", "tab");
-          tab.setAttribute("data-bs-target", `#pane-${table.relation_name}`);
-          tab.type = "button";
-          tab.role = "tab";
-          tab.textContent = table.relation_name;
-          tabsContainer.appendChild(tab);
+    var tables_extracted;
+    function viewAllAccessedBlk(data) {
+      document.getElementById("allAccessedBlkPane").style.display = "block";
+      const tabsContainer = document.getElementById("tableTabs");
+      const contentContainer = document.getElementById("tableTabsContent");
+      tabsContainer.innerHTML = "";
+      contentContainer.innerHTML = "";
 
-          const pane = document.createElement("div");
-          pane.className =
-            "tab-pane fade" + (index === 0 ? " show active" : "");
-          pane.id = `pane-${table.relation_name}`;
-          pane.role = "tabpanel";
-          pane.setAttribute("aria-labelledby", `tab-${table.relation_name}`);
+      data.forEach((table, index) => {
+        // Create the tab
+        const tab = document.createElement("button");
+        tab.className = "nav-link" + (index === 0 ? " active" : "");
+        tab.id = `tab-${table.relation_name}`;
+        tab.setAttribute("data-bs-toggle", "tab");
+        tab.setAttribute("data-bs-target", `#pane-${table.relation_name}`);
+        tab.type = "button";
+        tab.role = "tab";
+        tab.textContent = table.relation_name;
+        tabsContainer.appendChild(tab);
 
-          // Set fixed height and scroll
-          pane.style.height = "300px"; // Set your desired height
-          pane.style.overflowY = "auto"; // Enable vertical scrolling
+        const pane = document.createElement("div");
+        pane.className =
+          "tab-pane fade" + (index === 0 ? " show active" : "");
+        pane.id = `pane-${table.relation_name}`;
+        pane.role = "tabpanel";
+        pane.setAttribute("aria-labelledby", `tab-${table.relation_name}`);
 
-          // Add buttons to the pane
-          table.used_blocks.indexes.forEach((block) => {
-            const button = document.createElement("button");
-            button.className = "btn btn-primary m-1 btn-sm";
-            button.textContent = `${block}`;
-            button.onclick = () => {
-              console.log(table.relation_name);
-              exploreBlock(
-                block,
-                getRelationName(table.relation_name, tables_extracted)
-              );
-            };
-            pane.appendChild(button);
-          });
-          contentContainer.appendChild(pane);
+        // Set fixed height and scroll
+        pane.style.height = "300px"; // Set your desired height
+        pane.style.overflowY = "auto"; // Enable vertical scrolling
+
+        // Add buttons to the pane
+        table.used_blocks.indexes.forEach((block) => {
+          const button = document.createElement("button");
+          button.className = "btn btn-primary m-1 btn-sm";
+          button.textContent = `${block}`;
+          button.onclick = () => {
+            console.log(table.relation_name);
+            exploreBlock(
+              block,
+              getRelationName(table.relation_name, tables_extracted)
+            );
+          };
+          pane.appendChild(button);
         });
-      }
+        contentContainer.appendChild(pane);
+      });
+    }
 
-      function runQuery(query) {
+    function runQuery(query) {
+      try {
         var cardBody = document.getElementById("visualisationCard");
-        cardBody.innerHTML = ""; // Clear existing content
-        document.getElementById("viewBlkBtn").style.display = "none";
-        document.getElementById("allAccessedBlkPane").style.display = "none";
-
-        var nav = document.querySelector("#pagination");
-        nav.innerHTML = "";
-        const tabsContainer = document.getElementById("tableTabs");
-        tabsContainer.innerHTML = "";
-        const contentContainer = document.getElementById("tableTabsContent");
-        contentContainer.innerHTML = "";
-
+        if (cardBody) cardBody.innerHTML = ""; // Clear existing content if element exists
+    
+        var viewBlkBtn = document.getElementById("viewBlkBtn");
+        if (viewBlkBtn) viewBlkBtn.style.display = "none";
+    
+        var allAccessedBlkPane = document.getElementById("allAccessedBlkPane");
+        if (allAccessedBlkPane) allAccessedBlkPane.style.display = "none";
+    
         var n_query = query.replace(/\n|\t/g, " ").trim();
-
+    
         tables_extracted = extractTablesFromQuery(n_query.toUpperCase());
-        console.log(
-          JSON.stringify({
-            query: n_query,
-            relations: tables_extracted,
-          })
-        );
+    
         fetch("/api/runQuery", {
           method: "POST",
           headers: {
@@ -968,250 +808,290 @@
         })
           .then((response) => response.json())
           .then((data) => {
-            let query = data.query;
-            console.log(data);
-            data = data.data;
-            //sample
-            /*
-          data = {
-            "chartData": [
-              {
-                "relation": "customer",
-                "totalBlock": 3900,
-
-          "usedBlocks": {
-            "indexes": [1, 3, 4, 7]
-          }
-              },
-              {
-                "relation": "nation",
-                "usedBlock": 2400,
-                "totalBlock": 3900,
-
-          "usedBlocks": {
-            "indexes": [1, 3, 4, 7]
-          }
+            try {
+              let query = data.query;
+              data = data.data;
+    
+              // Display block view button if applicable
+              if (data.haveCtids && viewBlkBtn) viewBlkBtn.style.display = "block";
+    
+              if (viewBlkBtn) {
+                viewBlkBtn.addEventListener("click", function () {
+                  viewAllAccessedBlk(data.chartData);
+                });
               }
-            ],
-            "tableData": {
-              "columns": ["ctid for CUSTOMER", "ctid for NATION", "record data"],
-              "records": [
-                ["(0,6)", "(0,21)", "Customer#000000", "PEUUUU", "Test"],
-                ["(0,8)", "(0,21)", "Customer#123123123", "PEUUUU", "Test"]
-                // ... other records ...
-              ]
-            },
-            "queryPlan": {
-              "Plan": {
-                "Node Type": "Sort",
-                // ... other Plan details ...
-                "Plans": [
-                  // ... Nested Plans ...
-                ]
-              },
-              "Planning Time": 0.253,
-              "Triggers": [],
-              "Execution Time": 25.418
-            },
-            "additionalDetails": {
-              "naturalExplanation": "blahblahblah",
-              "bufferSize": "3020 bytes",
-              "totalCost": 10000
-            }
-          }
-          */
-            // Your existing code to insert content into the pre tag
-            console.log(data.haveCtids);
-            console.log("here");
-            if (data.haveCtids)
-              document.getElementById("viewBlkBtn").style.display = "block";
-
-            var viewBlkButton = document.getElementById("viewBlkBtn");
-
-            viewBlkButton.addEventListener("click", function () {
-              viewAllAccessedBlk(data.chartData);
-            });
-            document.querySelector("#qep_nl").innerHTML = `
-    <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Query Result:</h6>
-    <pre>${JSON.stringify(
-      data.additionalDetails.naturalExplanation,
-      null,
-      2
-    )}</pre>`;
-
-            // Select the newly added pre tag
-            const preTag = document.querySelector("#qep_nl pre");
-
-            // Apply CSS styles directly via JavaScript
-            preTag.style.overflow = "auto"; // Add scrollbars when necessary
-            preTag.style.whiteSpace = "pre-wrap"; // Enable word wrapping
-            preTag.style.wordWrap = "break-word"; // Break words to prevent horizontal overflow
-            preTag.style.maxWidth = "100%"; // Set a maximum width if desired
-
-            console.log(data.chartData);
-            // Load Chart with chartData from API
-            loadChart(data.chartData);
-
-            // Load Tree (assuming you have a function loadTree that takes part of the data)
-            loadTree(data.imageUrl); // Adjust 'someTreeData' based on your actual data structure
-
-            // Load Hit Block
-            console.log("Total Blocks:", data.additionalDetails.totalBlocks);
-            console.log(
-              "Total Blocks:",
-              data.additionalDetails.totalBlocks.hit_blocks
-            );
-            updateHitBlock(data.additionalDetails.totalBlocks.hit_blocks);
-
-            // Load Read Block
-            updateReadBlock(data.additionalDetails.totalBlocks.read_blocks);
-
-            // Load Buffer Size
-            updateBufferSize(
-              data.additionalDetails.totalBlocks.hit_blocks +
+    
+              // Display natural language explanation in #qep_nl
+              var qep_nl = document.querySelector("#qep_nl");
+              if (qep_nl) {
+                qep_nl.innerHTML = `
+                  <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Query Result:</h6>
+                  <pre>${JSON.stringify(data.additionalDetails.naturalExplanation, null, 2)}</pre>`;
+              }
+    
+              // Load visualization only if `visualisationCard` is still in the layout
+              if (cardBody) loadTree(data.imageUrl);
+    
+              // Load additional data if necessary
+              updateHitBlock(data.additionalDetails.totalBlocks.hit_blocks);
+              updateReadBlock(data.additionalDetails.totalBlocks.read_blocks);
+              updateBufferSize(
+                data.additionalDetails.totalBlocks.hit_blocks +
                 data.additionalDetails.totalBlocks.read_blocks
-            );
-
-            // Load Total Cost
-            console.log("Total cost:", data.additionalDetails.totalCost);
-            updateTotalCost(data.additionalDetails.totalCost);
-
-            console.log(data);
-            if (!data.isAggregation && data.haveCtids) {
-              // Load Table with tableData from API
-              var tableData = data.tableData;
-              var pageSize = 10;
-              var currentPage = 1;
-              var startIndex = (currentPage - 1) * pageSize;
-              var endIndex = Math.min(
-                startIndex + pageSize,
-                tableData.record.length
               );
-              var pageData = tableData.record.slice(startIndex, endIndex);
-              addPaginationControls(tableData, pageSize, currentPage);
-              populateTable(
-                tableData.col,
-                tableData.record,
-                pageSize,
-                currentPage,
-                data.isAggregation
-              );
-            } else {
-              // Load Table with tableData from API
-              var tableData = data.tableData;
-              var cols = tableData.col.filter(
-                (element) => !element.includes("ctid")
-              );
-
-              populateTable(
-                cols,
-                tableData.result,
-                pageSize,
-                currentPage,
-                true
-              );
+              updateTotalCost(data.additionalDetails.totalCost);
+              
+              // Skip loadChart call if charting logic was in the removed carousel component
+            } catch (innerError) {
+              console.error("Error processing data in runQuery:", innerError);
             }
-            // pageData
           })
           .catch((error) => {
-            console.error("Error:", error);
-            // Handle errors here
+            console.error("Error fetching data from API in runQuery:", error);
           });
+      } catch (error) {
+        console.error("Error in runQuery function:", error);
+      }
+    }
+    
+
+    function getRelationName(aliasOrRelationName, dictionary) {
+      // Check if the name is an alias in the dictionary
+      if (dictionary.hasOwnProperty(aliasOrRelationName)) {
+        return dictionary[aliasOrRelationName] || aliasOrRelationName;
+      }
+      // If not found or no value, return the name itself
+      return aliasOrRelationName;
+    }
+
+    function populateTable(
+      headers,
+      data,
+      pageSize,
+      currentPage,
+      isAggregation
+    ) {
+      var table = document.querySelector("#queryTable");
+      table.innerHTML = "";
+
+      // Calculate start and end index for slicing the data
+      var startIndex = (currentPage - 1) * pageSize;
+      var endIndex = startIndex + pageSize;
+      if (!isAggregation) {
+        // Create and populate the header row
+        var thead = document.createElement("thead");
+        var headerRow = document.createElement("tr");
+        headers.forEach((header) => {
+          var th = document.createElement("th");
+          th.className =
+            "text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center";
+          th.innerText = header;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Create and populate the body rows
+        var tbody = document.createElement("tbody");
+        data.slice(startIndex, endIndex).forEach((row) => {
+          var tr = document.createElement("tr");
+          headers.forEach((header, index) => {
+            var td = document.createElement("td");
+
+            // Create a container div for content
+            var div = document.createElement("div");
+            div.className = "d-flex px-2 py-1 align-items-center"; // Added 'justify-content-center'
+
+            var textSpan = document.createElement("span");
+            textSpan.className = "text-xs text-center"; // Added 'text-center'
+            textSpan.innerText =
+              index < headers.length - 1
+                ? row[index]
+                : row.slice(headers.length - 1).join(", ");
+            div.appendChild(textSpan);
+
+            // Create and add the 'Explore This Block' button
+            if (index < headers.length - 1) {
+              var button = document.createElement("button");
+              button.className =
+                "btn btn-link btn-icon-only btn-rounded btn-sm text-dark icon-move-right my-auto";
+              var buttonText = document.createTextNode("Look up this block ");
+              button.appendChild(buttonText);
+
+              var icon = document.createElement("i");
+              icon.className = "fas fa-search";
+              icon.setAttribute("aria-hidden", "true");
+              button.appendChild(icon);
+
+              // Explore button
+              button.onclick = function () {
+                console.log(headers[index]);
+                var blockName = textSpan.innerText.match(/\(([^,]+)/)[1];
+                var relation = headers[index].split("of_")[1];
+                console.log(relation);
+                exploreBlock(
+                  blockName,
+                  getRelationName(relation, tables_extracted)
+                );
+              };
+
+              div.appendChild(button);
+            }
+
+            td.appendChild(div);
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+      } else {
+        // Create and populate table headers
+        var thead = document.createElement("thead");
+        var headerRow = document.createElement("tr");
+        headers.forEach((columnName) => {
+          var th = document.createElement("th");
+          th.textContent = columnName;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+
+        // Create and populate table body
+        var tbody = document.createElement("tbody");
+        data.forEach((record) => {
+          var row = document.createElement("tr");
+          record.forEach((value, index) => {
+            var td = document.createElement("td");
+            // Set the text content for 'Block' and 'Record' columns
+            if (index === 0) {
+              td.textContent = value; // Block column
+            } else if (index === 1) {
+              td.textContent = value; // Record column
+            } else {
+              td.textContent = value; // Other columns
+            }
+            row.appendChild(td);
+          });
+          tbody.appendChild(row);
+        });
+
+        // Append the header and body to the table
+        table.appendChild(thead);
+        table.appendChild(tbody);
+      }
+      table.appendChild(tbody);
+    }
+
+    function addPaginationControls(data, pageSize, currentPage) {
+      var paginationUl = document.querySelector("#pagination");
+      paginationUl.innerHTML = "";
+
+      var totalItems = data.record.length;
+      var totalPages = Math.ceil(totalItems / pageSize);
+
+      function updateTableAndPagination(page) {
+        populateTable(data.col, data.records, pageSize, page);
+        addPaginationControls(data, pageSize, page); // Recreate pagination controls
       }
 
-      function getRelationName(aliasOrRelationName, dictionary) {
-        // Check if the name is an alias in the dictionary
-        if (dictionary.hasOwnProperty(aliasOrRelationName)) {
-          return dictionary[aliasOrRelationName] || aliasOrRelationName;
+      // Previous button
+      var prevLi = document.createElement("li");
+      prevLi.className = "page-item" + (currentPage === 1 ? " disabled" : "");
+      var prevLink = document.createElement("a");
+      prevLink.className = "page-link";
+      prevLink.href = "javascript:void(0);";
+      prevLink.setAttribute("aria-label", "Previous");
+      prevLink.innerHTML = '<span aria-hidden="true">&laquo;</span>';
+      prevLink.onclick = function () {
+        if (currentPage > 1) updateTableAndPagination(currentPage - 1);
+      };
+      prevLi.appendChild(prevLink);
+      paginationUl.appendChild(prevLi);
+
+      // Page number buttons
+      for (let i = 1; i <= totalPages; i++) {
+        // Display first 9 pages and last page when totalPages > 10
+        if (totalPages > 10 && !(i === totalPages || i <= 9)) {
+          // Add ellipsis just once before the last page link
+          if (i === 10) {
+            var ellipsisLi = document.createElement("li");
+            ellipsisLi.className = "page-item disabled";
+            ellipsisLi.innerHTML =
+              '<a class="page-link" href="javascript:void(0);">...</a>';
+            paginationUl.appendChild(ellipsisLi);
+          }
+          continue;
         }
-        // If not found or no value, return the name itself
-        return aliasOrRelationName;
+
+        var pageLi = document.createElement("li");
+        pageLi.className = "page-item" + (currentPage === i ? " active" : "");
+        var pageLink = document.createElement("a");
+        pageLink.className = "page-link";
+        pageLink.href = "javascript:void(0);";
+        pageLink.innerText = i;
+        pageLink.onclick = function () {
+          updateTableAndPagination(i);
+        };
+        pageLi.appendChild(pageLink);
+        paginationUl.appendChild(pageLi);
       }
 
-      function populateTable(
-        headers,
-        data,
-        pageSize,
-        currentPage,
-        isAggregation
-      ) {
-        var table = document.querySelector("#queryTable");
-        table.innerHTML = "";
+      // Next button
+      var nextLi = document.createElement("li");
+      nextLi.className =
+        "page-item" + (currentPage === totalPages ? " disabled" : "");
+      var nextLink = document.createElement("a");
+      nextLink.className = "page-link";
+      nextLink.href = "javascript:void(0);";
+      nextLink.setAttribute("aria-label", "Next");
+      nextLink.innerHTML = '<span aria-hidden="true">&raquo;</span>';
+      nextLink.onclick = function () {
+        if (currentPage < totalPages)
+          updateTableAndPagination(currentPage + 1);
+      };
+      nextLi.appendChild(nextLink);
+      paginationUl.appendChild(nextLi);
+    }
 
-        // Calculate start and end index for slicing the data
-        var startIndex = (currentPage - 1) * pageSize;
-        var endIndex = startIndex + pageSize;
-        if (!isAggregation) {
-          // Create and populate the header row
-          var thead = document.createElement("thead");
-          var headerRow = document.createElement("tr");
-          headers.forEach((header) => {
-            var th = document.createElement("th");
-            th.className =
-              "text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 text-center";
-            th.innerText = header;
-            headerRow.appendChild(th);
-          });
-          thead.appendChild(headerRow);
-          table.appendChild(thead);
+    function exploreBlock(blockName, relation) {
+      console.log("testing");
+      console.log(blockName, relation);
+      // Make POST request to api endpoint, which will return data needed for block exploration
+      fetch("/api/explore-block", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ blockName: blockName, relation: relation }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          // References to the modal and table container
+          var dataTableModal = new bootstrap.Modal(
+            document.getElementById("dataTableModal")
+          );
+          var dtTitle = document.getElementById("dataTableModalLabel");
+          dtTitle.textContent =
+            "Block Exploration - " +
+            relation +
+            "[Block number: " +
+            blockName +
+            "]";
 
-          // Create and populate the body rows
-          var tbody = document.createElement("tbody");
-          data.slice(startIndex, endIndex).forEach((row) => {
-            var tr = document.createElement("tr");
-            headers.forEach((header, index) => {
-              var td = document.createElement("td");
+          var tableContainer = document.getElementById("tableContainer");
 
-              // Create a container div for content
-              var div = document.createElement("div");
-              div.className = "d-flex px-2 py-1 align-items-center"; // Added 'justify-content-center'
+          // Create a new table element for the modal
+          var table = document.createElement("table");
+          table.className = "table";
 
-              var textSpan = document.createElement("span");
-              textSpan.className = "text-xs text-center"; // Added 'text-center'
-              textSpan.innerText =
-                index < headers.length - 1
-                  ? row[index]
-                  : row.slice(headers.length - 1).join(", ");
-              div.appendChild(textSpan);
+          // Obtain column names from data reponse
+          var columns = data["column_name"];
+          // Add 'Block' and 'Record' columns at the front
+          console.log(data);
+          columns.unshift("Block", "Record");
 
-              // Create and add the 'Explore This Block' button
-              if (index < headers.length - 1) {
-                var button = document.createElement("button");
-                button.className =
-                  "btn btn-link btn-icon-only btn-rounded btn-sm text-dark icon-move-right my-auto";
-                var buttonText = document.createTextNode("Look up this block ");
-                button.appendChild(buttonText);
-
-                var icon = document.createElement("i");
-                icon.className = "fas fa-search";
-                icon.setAttribute("aria-hidden", "true");
-                button.appendChild(icon);
-
-                // Explore button
-                button.onclick = function () {
-                  console.log(headers[index]);
-                  var blockName = textSpan.innerText.match(/\(([^,]+)/)[1];
-                  var relation = headers[index].split("of_")[1];
-                  console.log(relation);
-                  exploreBlock(
-                    blockName,
-                    getRelationName(relation, tables_extracted)
-                  );
-                };
-
-                div.appendChild(button);
-              }
-
-              td.appendChild(div);
-              tr.appendChild(td);
-            });
-            tbody.appendChild(tr);
-          });
-        } else {
           // Create and populate table headers
           var thead = document.createElement("thead");
           var headerRow = document.createElement("tr");
-          headers.forEach((columnName) => {
+          columns.forEach((columnName) => {
             var th = document.createElement("th");
             th.textContent = columnName;
             headerRow.appendChild(th);
@@ -1220,9 +1100,18 @@
 
           // Create and populate table body
           var tbody = document.createElement("tbody");
-          data.forEach((record) => {
+          var records = data["data"];
+          console.log("");
+          console.log(records);
+          records.forEach((record) => {
+            // Split first element of record (a,b) into two elements a & b, where a is the block number, b is the record number
+            var firstElement = record[0].replace(/[()]/g, "").split(",");
+
+            // Create a new array with 'Block' and 'Record' as separate elements
+            var newRowData = [...firstElement, ...record.slice(1)];
+
             var row = document.createElement("tr");
-            record.forEach((value, index) => {
+            newRowData.forEach((value, index) => {
               var td = document.createElement("td");
               // Set the text content for 'Block' and 'Record' columns
               if (index === 0) {
@@ -1240,316 +1129,77 @@
           // Append the header and body to the table
           table.appendChild(thead);
           table.appendChild(tbody);
-        }
-        table.appendChild(tbody);
-      }
 
-      function addPaginationControls(data, pageSize, currentPage) {
-        var paginationUl = document.querySelector("#pagination");
-        paginationUl.innerHTML = "";
+          // Clear any existing content in the table container
+          tableContainer.innerHTML = "";
 
-        var totalItems = data.record.length;
-        var totalPages = Math.ceil(totalItems / pageSize);
+          // Append the new table to the table container
+          tableContainer.appendChild(table);
 
-        function updateTableAndPagination(page) {
-          populateTable(data.col, data.records, pageSize, page);
-          addPaginationControls(data, pageSize, page); // Recreate pagination controls
-        }
+          // Set styles for horizontal scrolling
+          tableContainer.style.maxHeight = "400px"; // Adjust the value as needed
+          tableContainer.style.overflowX = "auto";
 
-        // Previous button
-        var prevLi = document.createElement("li");
-        prevLi.className = "page-item" + (currentPage === 1 ? " disabled" : "");
-        var prevLink = document.createElement("a");
-        prevLink.className = "page-link";
-        prevLink.href = "javascript:void(0);";
-        prevLink.setAttribute("aria-label", "Previous");
-        prevLink.innerHTML = '<span aria-hidden="true">&laquo;</span>';
-        prevLink.onclick = function () {
-          if (currentPage > 1) updateTableAndPagination(currentPage - 1);
-        };
-        prevLi.appendChild(prevLink);
-        paginationUl.appendChild(prevLi);
-
-        // Page number buttons
-        for (let i = 1; i <= totalPages; i++) {
-          // Display first 9 pages and last page when totalPages > 10
-          if (totalPages > 10 && !(i === totalPages || i <= 9)) {
-            // Add ellipsis just once before the last page link
-            if (i === 10) {
-              var ellipsisLi = document.createElement("li");
-              ellipsisLi.className = "page-item disabled";
-              ellipsisLi.innerHTML =
-                '<a class="page-link" href="javascript:void(0);">...</a>';
-              paginationUl.appendChild(ellipsisLi);
-            }
-            continue;
-          }
-
-          var pageLi = document.createElement("li");
-          pageLi.className = "page-item" + (currentPage === i ? " active" : "");
-          var pageLink = document.createElement("a");
-          pageLink.className = "page-link";
-          pageLink.href = "javascript:void(0);";
-          pageLink.innerText = i;
-          pageLink.onclick = function () {
-            updateTableAndPagination(i);
-          };
-          pageLi.appendChild(pageLink);
-          paginationUl.appendChild(pageLi);
-        }
-
-        // Next button
-        var nextLi = document.createElement("li");
-        nextLi.className =
-          "page-item" + (currentPage === totalPages ? " disabled" : "");
-        var nextLink = document.createElement("a");
-        nextLink.className = "page-link";
-        nextLink.href = "javascript:void(0);";
-        nextLink.setAttribute("aria-label", "Next");
-        nextLink.innerHTML = '<span aria-hidden="true">&raquo;</span>';
-        nextLink.onclick = function () {
-          if (currentPage < totalPages)
-            updateTableAndPagination(currentPage + 1);
-        };
-        nextLi.appendChild(nextLink);
-        paginationUl.appendChild(nextLi);
-      }
-
-      function exploreBlock(blockName, relation) {
-        console.log("testing");
-        console.log(blockName, relation);
-        // Make POST request to api endpoint, which will return data needed for block exploration
-        fetch("/api/explore-block", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ blockName: blockName, relation: relation }),
+          // Show the modal
+          dataTableModal.show();
         })
-          .then((response) => response.json())
-          .then((data) => {
-            // References to the modal and table container
-            var dataTableModal = new bootstrap.Modal(
-              document.getElementById("dataTableModal")
-            );
-            var dtTitle = document.getElementById("dataTableModalLabel");
-            dtTitle.textContent =
-              "Block Exploration - " +
-              relation +
-              "[Block number: " +
-              blockName +
-              "]";
-
-            var tableContainer = document.getElementById("tableContainer");
-
-            // Create a new table element for the modal
-            var table = document.createElement("table");
-            table.className = "table";
-
-            // Obtain column names from data reponse
-            var columns = data["column_name"];
-            // Add 'Block' and 'Record' columns at the front
-            console.log(data);
-            columns.unshift("Block", "Record");
-
-            // Create and populate table headers
-            var thead = document.createElement("thead");
-            var headerRow = document.createElement("tr");
-            columns.forEach((columnName) => {
-              var th = document.createElement("th");
-              th.textContent = columnName;
-              headerRow.appendChild(th);
-            });
-            thead.appendChild(headerRow);
-
-            // Create and populate table body
-            var tbody = document.createElement("tbody");
-            var records = data["data"];
-            console.log("");
-            console.log(records);
-            records.forEach((record) => {
-              // Split first element of record (a,b) into two elements a & b, where a is the block number, b is the record number
-              var firstElement = record[0].replace(/[()]/g, "").split(",");
-
-              // Create a new array with 'Block' and 'Record' as separate elements
-              var newRowData = [...firstElement, ...record.slice(1)];
-
-              var row = document.createElement("tr");
-              newRowData.forEach((value, index) => {
-                var td = document.createElement("td");
-                // Set the text content for 'Block' and 'Record' columns
-                if (index === 0) {
-                  td.textContent = value; // Block column
-                } else if (index === 1) {
-                  td.textContent = value; // Record column
-                } else {
-                  td.textContent = value; // Other columns
-                }
-                row.appendChild(td);
-              });
-              tbody.appendChild(row);
-            });
-
-            // Append the header and body to the table
-            table.appendChild(thead);
-            table.appendChild(tbody);
-
-            // Clear any existing content in the table container
-            tableContainer.innerHTML = "";
-
-            // Append the new table to the table container
-            tableContainer.appendChild(table);
-
-            // Set styles for horizontal scrolling
-            tableContainer.style.maxHeight = "400px"; // Adjust the value as needed
-            tableContainer.style.overflowX = "auto";
-
-            // Show the modal
-            dataTableModal.show();
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            // Handle errors here
-          });
-      }
-    </script>
-    <script>
-      function loadTree(imageUrl) {
-        var cardBody = document.getElementById("visualisationCard");
-        cardBody.innerHTML = ""; // Clear existing content
-        var img = document.createElement("img");
-        img.alt = "Query Execution Plan";
-        img.style.width = "100%";
-
-        img.src = imageUrl; // Set the image source to the URL
-        cardBody.appendChild(img); // Append the image to the card body
-      }
-
-      function loadChart(chartData) {
-        var carouselInner = document.querySelector(".carousel-inner");
-        carouselInner.innerHTML = "";
-
-        chartData.forEach(function (data, index) {
-          // Create carousel item
-          var carouselItem = document.createElement("div");
-          carouselItem.className =
-            "carousel-item h-100" + (index === 0 ? " active" : "");
-
-          // Create card
-          var card = document.createElement("div");
-          card.className = "card z-index-2 h-100";
-
-          // Create card header
-          var cardHeader = document.createElement("div");
-          cardHeader.className = "card-header pb-0 pt-3 bg-transparent";
-          var title = document.createElement("h6");
-          title.className = "text-capitalize";
-          title.textContent =
-            "Block Usage Analysis - " +
-            getRelationName(data.relation_name, tables_extracted) +
-            "[Total Blocks: " +
-            data.total_blocks +
-            "]";
-          cardHeader.appendChild(title);
-
-          // Create card body
-          var cardBody = document.createElement("div");
-          cardBody.className = "card-body p-3";
-          var chartDiv = document.createElement("div");
-          chartDiv.className = "chart";
-          var canvas = document.createElement("canvas");
-          canvas.id = "chart-pie" + index;
-          canvas.className = "chart-canvas";
-          canvas.height = 300;
-          chartDiv.appendChild(canvas);
-          cardBody.appendChild(chartDiv);
-
-          // Append card to carousel item
-          card.appendChild(cardHeader);
-          card.appendChild(cardBody);
-          carouselItem.appendChild(card);
-
-          // Append carousel item to carousel
-          carouselInner.appendChild(carouselItem);
-          console.log(data.used_blocks.number);
-          console.log(data.totalBlocks);
-          // Initialize Chart.js
-          var ctx = canvas.getContext("2d");
-          new Chart(ctx, {
-            type: "pie",
-            data: {
-              labels: ["Used Block", "Remaining Block"],
-              datasets: [
-                {
-                  label: "Block Usage",
-                  data: [
-                    data.used_blocks.number,
-                    data.total_blocks - data.used_blocks.number,
-                  ],
-                  backgroundColor: [
-                    "rgba(54, 162, 235, 0.2)",
-                    "rgba(255, 206, 86, 0.2)",
-                  ],
-                  borderColor: [
-                    "rgba(54, 162, 235, 1)",
-                    "rgba(255, 206, 86, 1)",
-                  ],
-                  borderWidth: 1,
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  display: true,
-                  position: "right",
-                },
-              },
-            },
-          });
-          // Optionally, add a label for the total number of blocks
+        .catch((error) => {
+          console.error("Error:", error);
+          // Handle errors here
         });
-      }
+    }
+  </script>
+  <script>
+    function loadTree(imageUrl) {
+      var cardBody = document.getElementById("visualisationCard");
+      cardBody.innerHTML = ""; // Clear existing content
+      var img = document.createElement("img");
+      img.alt = "Query Execution Plan";
+      img.style.width = "100%";
 
-      function updateHitBlock(hitBlock) {
-        const hitBlockValueElement = document.getElementById("hit-block-value");
-        hitBlockValueElement.textContent = `${hitBlock}`;
-      }
+      img.src = imageUrl; // Set the image source to the URL
+      cardBody.appendChild(img); // Append the image to the card body
+    }
 
-      function updateReadBlock(readBlock) {
-        const readBlockValueElement =
-          document.getElementById("read-block-value");
-        readBlockValueElement.textContent = `${readBlock}`;
-      }
+    
+    function updateHitBlock(hitBlock) {
+      const hitBlockValueElement = document.getElementById("hit-block-value");
+      hitBlockValueElement.textContent = `${hitBlock}`;
+    }
 
-      function updateBufferSize(bufferSize) {
-        console.log("Buffer size received:", bufferSize);
-        const bufferSizeValueElement =
-          document.getElementById("buffer-size-value");
-        bufferSizeValueElement.textContent = `${bufferSize}`;
-      }
+    function updateReadBlock(readBlock) {
+      const readBlockValueElement =
+        document.getElementById("read-block-value");
+      readBlockValueElement.textContent = `${readBlock}`;
+    }
 
-      function updateTotalCost(totalCost) {
-        console.log("Total cost received:", totalCost);
-        const totalCostValueElement =
-          document.getElementById("total-cost-value");
-        totalCostValueElement.textContent = `${totalCost}`;
-      }
-    </script>
-    <script>
-      var win = navigator.platform.indexOf("Win") > -1;
-      if (win && document.querySelector("#sidenav-scrollbar")) {
-        var options = {
-          damping: "0.5",
-        };
-        Scrollbar.init(document.querySelector("#sidenav-scrollbar"), options);
-      }
-    </script>
-    <!-- Github buttons -->
-    <script async defer src="https://buttons.github.io/buttons.js"></script>
-    <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
-    <script src="static/js/argon-dashboard.min.js?v=2.0.4"></script>
-  </body>
+    function updateBufferSize(bufferSize) {
+      console.log("Buffer size received:", bufferSize);
+      const bufferSizeValueElement =
+        document.getElementById("buffer-size-value");
+      bufferSizeValueElement.textContent = `${bufferSize}`;
+    }
+
+    function updateTotalCost(totalCost) {
+      console.log("Total cost received:", totalCost);
+      const totalCostValueElement =
+        document.getElementById("total-cost-value");
+      totalCostValueElement.textContent = `${totalCost}`;
+    }
+  </script>
+  <script>
+    var win = navigator.platform.indexOf("Win") > -1;
+    if (win && document.querySelector("#sidenav-scrollbar")) {
+      var options = {
+        damping: "0.5",
+      };
+      Scrollbar.init(document.querySelector("#sidenav-scrollbar"), options);
+    }
+  </script>
+  <!-- Github buttons -->
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+  <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
+  <script src="static/js/argon-dashboard.min.js?v=2.0.4"></script>
+</body>
+
 </html>

@@ -1,21 +1,18 @@
 import pytest
 from whatif import process_whatif_query
-from psycopg2.errors import ProgrammingError, OperationalError
 import os
+
 
 @pytest.fixture
 def region_relations():
-    return {
-        "region": {
-            "columns": ["r_regionkey", "r_name", "r_comment"],
-            "size": 5
-        }
-    }
+    return {"region": {"columns": ["r_regionkey", "r_name", "r_comment"], "size": 5}}
+
 
 @pytest.fixture
 def basic_parameters():
     """Basic set of parameters for testing"""
     return {"enable_seqscan": True, "enable_indexscan": True, "work_mem": "64MB"}
+
 
 def test_region_simple_select(region_relations, basic_parameters):
     """Test simple SELECT from region table"""
@@ -123,14 +120,16 @@ def test_region_aggregate(region_relations):
 
     error, result = process_whatif_query(query, region_relations, parameters)
     assert not error, f"Error occurred: {result.get('msg', '')}"
+
+
 class TestProgrammingErrors:
     """Test cases for ProgrammingError exceptions"""
-    
+
     def test_syntax_error(self, region_relations):
         """Test SQL syntax errors"""
         query = "SELCT * FROM region"  # Misspelled SELECT
         error, result = process_whatif_query(query, region_relations, {})
-        
+
         assert error is True
         assert "msg" in result
         assert "Error during what-if analysis" in result["msg"]
@@ -140,28 +139,29 @@ class TestProgrammingErrors:
         """Test queries with non-existent tables"""
         query = "SELECT * FROM nonexistent_table"
         error, result = process_whatif_query(query, region_relations, {})
-        
+
         assert error is True
         assert "msg" in result
         assert "Error during what-if analysis" in result["msg"]
         assert "does not exist" in result["msg"]
 
+
 class TestParameterErrors:
     """Test cases for parameter-related errors"""
-    
+
     def test_float_parameter_error(self, region_relations):
         """Test error handling for invalid float parameters"""
         test_cases = [
             {"random_page_cost": "invalid"},
             {"cpu_tuple_cost": "invalid"},
             {"cpu_index_tuple_cost": "invalid"},
-            {"cpu_operator_cost": "invalid"}
+            {"cpu_operator_cost": "invalid"},
         ]
-        
+
         query = "SELECT * FROM region"
         for params in test_cases:
             error, result = process_whatif_query(query, region_relations, params)
-            
+
             assert error is True
             assert "msg" in result
             assert "An error has occurred" in result["msg"]
@@ -170,42 +170,43 @@ class TestParameterErrors:
 
     def test_memory_parameter_error(self, region_relations):
         """Test error handling for invalid memory parameters"""
-        test_cases = [
-            {"work_mem": "invalid"},
-            {"effective_cache_size": "invalid"}
-        ]
-        
+        test_cases = [{"work_mem": "invalid"}, {"effective_cache_size": "invalid"}]
+
         query = "SELECT * FROM region"
         for params in test_cases:
             error, result = process_whatif_query(query, region_relations, params)
-            
+
             assert error is True
             assert "msg" in result
             assert "An error has occurred" in result["msg"]
-            assert any(expected in result["msg"] for expected in 
-                ["ValueError", "invalid value for parameter"])
+            assert any(
+                expected in result["msg"]
+                for expected in ["ValueError", "invalid value for parameter"]
+            )
+
 
 class TestOperationalErrors:
     """Test cases for OperationalError exceptions"""
-    
+
     def test_connection_error(self, region_relations):
         """Test database connection error"""
         try:
             query = "SELECT * FROM region"
             error, result = process_whatif_query(query, region_relations, {})
-            
+
             if error and "Failed to connect to the database" in result["msg"]:
                 assert "ensure that the database is running" in result["msg"]
         except Exception:
             pytest.skip("Database is running, cannot test connection error")
 
+
 class TestInvalidInputs:
     """Test cases for invalid inputs"""
-    
+
     def test_none_query(self, region_relations):
         """Test with None as query"""
         error, result = process_whatif_query(None, region_relations, {})
-        
+
         assert error is True
         assert "msg" in result
         assert "Error during what-if analysis" in result["msg"]
@@ -214,11 +215,12 @@ class TestInvalidInputs:
     def test_empty_query(self, region_relations):
         """Test with empty query"""
         error, result = process_whatif_query("", region_relations, {})
-        
+
         assert error is True
         assert "msg" in result
         assert "Error during what-if analysis" in result["msg"]
         assert "syntax error" in result["msg"].lower()
+
 
 if __name__ == "__main__":
     pytest.main(["-v", __file__])

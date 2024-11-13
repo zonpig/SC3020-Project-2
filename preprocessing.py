@@ -1,6 +1,4 @@
 # Code for reading inputs and any preprocessing to make your algorithm work
-
-
 from collections import deque
 import logging
 import json
@@ -13,18 +11,50 @@ from psycopg2 import ProgrammingError, OperationalError
 
 class Database:
     connection = None
+    database = "TPC-H"  # Default database
+
+    @classmethod
+    def set_database(cls, new_database):
+        """
+        Updates the database name and resets the connection.
+        """
+        cls.database = new_database
+        # Close the existing connection if there is one
+        if cls.connection is not None:
+            cls.connection.close()
+            cls.connection = None  # Reset connection to ensure new one is created
 
     @classmethod
     def get_connection(cls):
+        """
+        Returns a connection to the current database.
+        """
         if cls.connection is None:
             cls.connection = psycopg2.connect(
                 host="localhost",
-                database="TPC-H",
+                database=cls.database,
                 user="postgres",
                 password="password",
-                port="5432",
+                port="5433",
             )
         return cls.connection
+
+
+####
+def get_postgres_schemas():
+    try:
+        connection = Database.get_connection()
+
+        cursor = connection.cursor()
+
+        # Query for schemas
+        cursor.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
+        schemas = [row[0] for row in cursor.fetchall()]
+
+        return schemas
+    except Exception as e:
+        print("Error retrieving schemas:", e)
+        return []
 
 
 ####################################### Core Function #######################################
@@ -59,7 +89,7 @@ def get_relation_block(relation, block_id):
         except ProgrammingError as e:
             print(e)
             cur.execute("ROLLBACK;")
-            return True, {"msg": f"Invalid SQL query!"}, None
+            return True, {"msg": "Invalid SQL query!"}, None
 
 
 """
@@ -95,7 +125,7 @@ def process_query(user_query, relations):
             except ProgrammingError as e:
                 print(e)
                 cur.execute("ROLLBACK;")
-                return True, {"msg": f"Invalid SQL query!"}
+                return True, {"msg": "Invalid SQL query!"}
 
         print("fetched the QEP!")
 
@@ -121,9 +151,9 @@ def process_query(user_query, relations):
         # get block analysis for query
         result["block_analysis"] = get_block_analysis(user_query, relations, connection)
 
-    except OperationalError as e:
+    except OperationalError:
         return True, {
-            "msg": f"An error has occurred: Failed to connect to the database! Please ensure that the database is running."
+            "msg": "An error has occurred: Failed to connect to the database! Please ensure that the database is running."
         }
     except Exception as e:
         return True, {"msg": f"An error has occurred: {repr(e)}"}
