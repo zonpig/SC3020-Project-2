@@ -44,10 +44,10 @@ def adding_hints_to_original_query(sql_query):
 
         # result["plan_data_path"] = plan_json_name
         result["hints"] = get_hints(qep)
+        print(result["hints"])
 
-        modified_query = re.sub(
-            r"/\*\+ .*? \*/", f"/* {' '.join(result['hints'])} */", sql_query
-        )
+        hints = " ".join(result["hints"])
+        modified_query = re.sub(r"/\*\+ .*? \*/", f"/* {hints} */", sql_query)
         print("Query with Hints: ")
         print(modified_query)
 
@@ -55,7 +55,7 @@ def adding_hints_to_original_query(sql_query):
         cursor.close()
         connection.close()
 
-        return qep
+        return result["hints"], qep
 
     except Exception as e:
         print("An error occurred:", e)
@@ -81,22 +81,15 @@ def produce_hints(plan):
     node_type = plan["Node Type"]
 
     node_type_to_function = {
-        # "Aggregate": aggregate_natural_explain,
         # "Append": append_natural_explain,
         "Bitmap Heap Scan": bitmap_scan_hint,  # Actually Bitmap
         # "Bitmap Index Scan": bitmap_index_scan_natural_explain,
         # "CTE Scan": cte_natural_explain,
         # "Function Scan": function_scan_natural_explain,
-        # "Gather": gather_natural_explain,
         # "Gather Merge": gather_merge_natural_explain,
-        # "Group": group_natural_explain,
-        # "Hash": hash_natural_explain,
         "Hash Join": hash_join_hint,
         "Index Scan": index_scan_hint,
         # "Index Only Scan": index_only_scan_natural_explain,
-        # "Limit": limit_natural_explain,
-        # "Materialize": materialize_natural_explain,
-        # "Memoize": memoize_natural_explain,
         "Merge Join": merge_join_hint,
         "Nested Loop": nested_loop_hint,
         "Seq Scan": seq_scan_hint,
@@ -145,8 +138,9 @@ def seq_scan_hint(plan):
 # Join Hints
 def nested_loop_hint(plan):
     tables = [re.findall(r"(\w+)\.", item)[0] for item in plan["Output"]]
-    hint = f"NestedLoop({' '.join(tables)})"
+    hint = f"NestLoop({' '.join(tables)})"
     print(hint)
+    return hint
 
 
 def hash_join_hint(plan):
@@ -166,7 +160,157 @@ def merge_join_hint(plan):
 test_query = "/*+ NestLoop(customer nation) */ SELECT CUSTOMER.C_NAME, NATION.N_NAME FROM CUSTOMER, NATION WHERE CUSTOMER.C_NATIONKEY = NATION.N_NATIONKEY  AND CUSTOMER.C_ACCTBAL <= 5 AND NATION.N_NATIONKEY <= 5"
 test_query_2 = "/*+ NoSeqScan(nation) */ SELECT PS_PARTKEY, SUM(PS_SUPPLYCOST * PS_AVAILQTY) AS VALUE  FROM PARTSUPP, SUPPLIER, NATION WHERE PS_SUPPKEY = S_SUPPKEY  AND S_NATIONKEY = N_NATIONKEY AND N_NAME = 'SAUDI ARABIA'  GROUP BY PS_PARTKEY HAVING  SUM(PS_SUPPLYCOST * PS_AVAILQTY) > (SELECT SUM(PS_SUPPLYCOST * PS_AVAILQTY) * 0.0001000000  FROM PARTSUPP, SUPPLIER, NATION WHERE PS_SUPPKEY = S_SUPPKEY AND S_NATIONKEY = N_NATIONKEY AND N_NAME = 'SAUDI ARABIA') ORDER BY VALUE DESC LIMIT 1;"
 
-adding_hints_to_original_query(test_query)
+hints, qep = adding_hints_to_original_query(test_query)
+
+
+def generate_what_if_questions(hints):
+    what_if_questions = []
+
+    operation_tables = []
+    operation_types = set()
+
+    for item in hints:
+        # Split the item into the scan type and its parameters
+        operation_type, tables = item.split("(")
+        tables = tables.strip(")").split()
+
+        operation_types.add(operation_type)
+        # Append each operation as a tuple to the list
+        operation_tables.append((operation_type, tables))
+
+    operation_type_to_function = {
+        "BitmapScan": bitmap_scan_specific_question,  # Actually Bitmap
+        "IndexScan": index_scan_specific_question,
+        "SeqScan": seq_scan_specific_question,
+        "NestLoop": nested_loop_specific_question,
+        "MergeJoin": merge_join_specific_question,
+        "HashJoin": hash_join_specific_question,
+    }
+
+    for operation_type, tables in operation_tables:
+        if operation_type in operation_type_to_function.keys():
+            what_if_questions.extend(operation_type_to_function[operation_type](tables))
+        else:
+            continue
+
+    for operation_type in operation_types:
+        if operation_type == "BitmapScan":
+            what_if_questions.append(bitmap_scan_general_question())
+        elif operation_type == "IndexScan":
+            what_if_questions.append(index_scan_general_question())
+        elif operation_type == "SeqScan":
+            what_if_questions.append(seq_scan_general_question())
+        elif operation_type == "NestLoop":
+            what_if_questions.append(nested_loop_general_question())
+        elif operation_type == "MergeJoin":
+            what_if_questions.append(merge_join_general_question())
+        elif operation_type == "HashJoin":
+            what_if_questions.append(hash_join_general_question())
+
+    return what_if_questions
+
+
+# Scan What-if Questions
+def bitmap_scan_specific_question(table):
+    questions = [
+        f"What happens if I change the BitMap Scan of table {table[0]} to a Sequential Scan?",
+        f"What happens if I change the BitMap Scan of table {table[0]} to an Index Scan?",
+        f"What happens if I prevent the use of BitMap Scan for table {table[0]}?",
+    ]
+    return questions
+
+
+def index_scan_specific_question(table):
+    questions = [
+        f"What happens if I change the Index Scan of table {table[0]} to a Sequential Scan?",
+        f"What happens if I change the Index Scan of table {table[0]} to a BitMap Scan?",
+        f"What happens if I prevent the use of Index Scan for table {table[0]}?",
+    ]
+    return questions
+
+
+def seq_scan_specific_question(table):
+    questions = [
+        f"What happens if I change the Sequential Scan of table {table[0]} to an Index Scan?",
+        f"What happens if I change the Sequential Scan of table {table[0]} to a BitMap Scan?",
+        f"What happens if I prevent the use of Sequential Scan for table {table[0]}?",
+    ]
+    return questions
+
+
+def bitmap_scan_general_question():
+    return "What happens if I don't use BitMap Scan at all?"
+
+
+def index_scan_general_question():
+    return "What happens if I don't use Index Scan at all?"
+
+
+def seq_scan_general_question():
+    return "What happens if I don't use Sequential Scan at all?"
+
+
+# Join What-if Questions
+def nested_loop_specific_question(tables):
+    table_a, table_b = tables
+    questions = [
+        f"What happens if I change the Nested Loop Join of table {table_a} and {table_b} to a Hash Join?",
+        f"What happens if I change the Nested Loop Join of table {table_a} and {table_b} to a Merge Join?",
+        f"What happens if I prevent the use of Nested Loop Join for table {table_a} and {table_b}?",
+    ]
+    return questions
+
+
+def hash_join_specific_question(tables):
+    table_a, table_b = tables
+    questions = [
+        f"What happens if I change the Hash Join of table {table_a} and {table_b} to a Nested Loop Join?",
+        f"What happens if I change the Hash Join of table {table_a} and {table_b} to a Merge Join?",
+        f"What happens if I prevent the use of Hash Join for table {table_a} and {table_b}?",
+    ]
+    return questions
+
+
+def merge_join_specific_question(tables):
+    table_a, table_b = tables
+    questions = [
+        f"What happens if I change the Merge Join of table {table_a} and {table_b} to a Nested Loop Join?",
+        f"What happens if I change the Merge Join of table {table_a} and {table_b} to a Hash Join?",
+        f"What happens if I prevent the use of Merge Join for table {table_a} and {table_b}?",
+    ]
+    return questions
+
+
+def nested_loop_general_question():
+    return "What happens if I don't use Nested Loop Join at all?"
+
+
+def hash_join_general_question():
+    return "What happens if I don't use Hash Join at all?"
+
+
+def merge_join_general_question():
+    return "What happens if I don't use Merge Join at all?"
+
+
+test = ["IndexScan(nation)", "SeqScan(customer)", "NestLoop(customer nation)"]
+
+print(generate_what_if_questions(test))
+
+[
+    "What happens if I change the Index Scan of table nation to a Sequential Scan?",
+    "What happens if I change the Index Scan of table nation to a BitMap Scan?",
+    "What happens if I prevent the use of Index Scan for table nation?",
+    "What happens if I change the Sequential Scan of table customer to an Index Scan?",
+    "What happens if I change the Sequential Scan of table customer to a BitMap Scan?",
+    "What happens if I prevent the use of Sequential Scan for table customer?",
+    "What happens if I change the Nested Loop Join of table customer and nation to a Hash Join?",
+    "What happens if I change the Nested Loop Join of table customer and nation to a Merge Join?",
+    "What happens if I prevent the use of Nested Loop Join for table customer and nation?",
+    "What happens if I don't use Sequential Scan at all?",
+    "What happens if I don't use Index Scan at all?",
+    "What happens if I don't use Nested Loop Join at all?",
+]
 
 
 def process_whatif_query(sql_query, query_execution_plan):
