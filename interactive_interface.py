@@ -97,7 +97,8 @@ def visualize_query_plan(plan):
             "rows": details.get('Actual Rows', 'N/A'),
             "buffer": buffer_sum,
             "options": options,
-            "changed": G.nodes[node]["changed"]
+            "changed": G.nodes[node]["changed"],
+            "node_id": node
         }
         node_details.append(node_info)
         node_labels.append(G.nodes[node]["label"])
@@ -287,6 +288,9 @@ def visualize_query_plan(plan):
                     var point = data.points[0];
                     currentNode = point.customdata;
                     selectedNode = currentNode.type;
+                    selectedNodeId = currentNode.node_id;
+                    
+                    console.log('Node clicked:', selectedNodeId);
                     
                     var details = document.getElementById('details');
                     details.innerHTML = `
@@ -312,11 +316,13 @@ def visualize_query_plan(plan):
                     document.getElementById('selected-info').innerHTML = `
                         Last Selection:<br>
                         Node: ${{selectedNode}}<br>
+                        Node ID: ${{selectedNodeId}} <br>
                         What-if: ${{selectedOption}}
                     `;
                     
                     console.log('Selected:', {{
                         node_type: selectedNode,
+                        node_id: selectedNodeId,
                         what_if: selectedOption
                     }});
                     
