@@ -24,9 +24,10 @@ def build_graph(G, node, parent=None):
     )
     total_cost = node.get("Total Cost", "N/A")
     row_size = node.get("Actual Rows", "N/A")
+    changed = node.get("changed", False)
 
     label = f"{node['Node Type']}<br>Cost: {total_cost}<br>Buffer: {buffer}<br>Rows: {row_size}"
-    G.add_node(node_id, label=label, type=node["Node Type"], data=node)
+    G.add_node(node_id, label=label, type=node["Node Type"], data=node, changed=changed)
     
     if parent:
         G.add_edge(parent, node_id)
@@ -63,6 +64,7 @@ def visualize_query_plan(plan):
     node_y = []
     node_details = []
     node_labels = []
+    node_colors = []
     
     for node in G.nodes():
         x, y = pos[node]
@@ -79,23 +81,40 @@ def visualize_query_plan(plan):
                 "Shared Written Blocks",
             ]
         )
+        node_type = details.get("Node Type", "N/A")
+        
+        # Set what if options based on node type
+        if node_type in ["Hash Join", "Merge Join", "Nested Loop"]:
+            options = ["Hash Join", "Merge Join", "Nested Loop"]
+        elif node_type in ["Seq Scan", "Index Scan", "Bitmap Heap Scan"]:
+            options = ["Seq Scan", "Index Scan", "Bitmap Heap Scan"]
+        else:
+            options = []
+
         node_info = {
             "type": details.get('Node Type', 'N/A'),
             "cost": details.get('Total Cost', 'N/A'),
             "rows": details.get('Actual Rows', 'N/A'),
-            "buffer": buffer_sum
+            "buffer": buffer_sum,
+            "options": options,
+            "changed": G.nodes[node]["changed"]
         }
         node_details.append(node_info)
         node_labels.append(G.nodes[node]["label"])
+
+        # Set node color based on the "changed" field
+        if G.nodes[node]["changed"]:
+            node_colors.append('red')
+        else:
+            node_colors.append('lightblue')
 
     node_trace = go.Scatter(
         x=node_x, y=node_y,
         mode='markers+text',
         marker=dict(
-            size=30,
-            color='lightblue',
+            size=20,
+            color=node_colors,
             line_width=2,
-            line=dict(color='darkblue'),
             symbol='circle',
         ),
         text=node_labels,
@@ -107,7 +126,7 @@ def visualize_query_plan(plan):
     fig = go.Figure(data=[edge_trace, node_trace])
     
     fig.update_layout(
-        title="Query Plan Visualization<br>Click node to see optimization options",
+        title="Query Plan Visualization<br>Click node to see what-if options",
         showlegend=False,
         hovermode='closest',
         margin=dict(b=20, l=5, r=5, t=40),
@@ -162,6 +181,10 @@ def visualize_query_plan(plan):
                 background: #f5f5f5;
                 border-radius: 4px;
             }}
+            #options-title {{
+                font-weight: bold;
+                margin-bottom: 10px;
+            }}
             #selected-info {{
                 position: fixed;
                 bottom: 20px;
@@ -178,10 +201,8 @@ def visualize_query_plan(plan):
         <div id="chart"></div>
         <div id="popup">
             <div id="details"></div>
-            <div class="option" onclick="selectOption('Add Index')">Add Index</div>
-            <div class="option" onclick="selectOption('Create Materialized View')">Create Materialized View</div>
-            <div class="option" onclick="selectOption('Partition Table')">Partition Table</div>
-            <div class="option" onclick="selectOption('Rewrite Query')">Rewrite Query</div>
+            <div id="options-title">What if I change the operation to...</div>
+            <div id="options-container"></div>
         </div>
         <div id="selected-info"></div>
         
@@ -241,6 +262,23 @@ def visualize_query_plan(plan):
                 }}
             }}
             
+            function generateOptionButtons() {{
+                var optionsContainer = document.getElementById('options-container');
+                optionsContainer.innerHTML = '';
+
+                if (currentNode && currentNode.options.length > 0) {{
+                    currentNode.options.forEach(option => {{
+                        var optionElement = document.createElement('div');
+                        optionElement.className = 'option';
+                        optionElement.textContent = option;
+                        optionElement.onclick = () => selectOption(option);
+                        optionsContainer.appendChild(optionElement);
+                    }});
+                }} else {{
+                    optionsContainer.innerHTML = '<div class="option">No what-if options available</div>';
+                }}
+            }}
+            
             Plotly.newPlot('chart', plotData.data, plotData.layout).then(function() {{
                 updatePlotSize();
                 
@@ -258,6 +296,7 @@ def visualize_query_plan(plan):
                         <strong>Buffer:</strong> ${{currentNode.buffer}}
                     `;
                     
+                    generateOptionButtons();
                     showPopup(data.event.pageX + 10, data.event.pageY + 10);
                     // Stop propagation to prevent immediate popup closure
                     data.event.stopPropagation();
@@ -273,12 +312,12 @@ def visualize_query_plan(plan):
                     document.getElementById('selected-info').innerHTML = `
                         Last Selection:<br>
                         Node: ${{selectedNode}}<br>
-                        Optimization: ${{selectedOption}}
+                        What-if: ${{selectedOption}}
                     `;
                     
                     console.log('Selected:', {{
                         node_type: selectedNode,
-                        optimization: selectedOption
+                        what_if: selectedOption
                     }});
                     
                     closePopup();
@@ -307,8 +346,8 @@ def visualize_query_plan(plan):
     return alt
 
 
-# # Sample usage
-# with open('test_plan.json', 'r') as file:
-#     data = json.load(file)
+# Sample usage
+with open('test_plan.json', 'r') as file:
+    data = json.load(file)
 
-# optimizer = visualize_query_plan(data)
+what_if = visualize_query_plan(data)
