@@ -63,6 +63,43 @@ def run_query():
     # print(result)
     return jsonify(result)
 
+@app.route("/api/runAlternateQuery", methods=["POST"])
+def run_alternate_query():
+    print("run_whatif")
+    data = request.json
+    print(data)
+    query = data.get("query")
+    query = re.sub(r"\s+", " ", query)
+    relations = data.get("relations")
+
+    result = {"query": query}
+
+    has_error, response = process_query(query, relations)
+    if has_error:
+        result["error"] = response["msg"]
+    else:
+        json_path = response["plan_data_path"]
+        with open(json_path, "r") as json_file:
+            plan = json.load(json_file)
+        url = visualize_query_plan(plan)  # Generate the image
+        # Assuming the image is saved in a static directory
+        image_url = url_for("static", filename=url)
+
+        result["data"] = {
+            "chartData": response["block_analysis"]["blocks_by_relation"],
+            "tableData": response["block_analysis"]["sql_response"],
+            "haveCtids": response["block_analysis"]["have_ctids"],
+            "isAggregation": response["block_analysis"]["is_aggregation"],
+            "imageUrl": image_url,
+            "additionalDetails": {
+                "naturalExplanation": response["natural_explain"],
+                "totalCost": response["summary_data"]["total_cost"],
+                "totalBlocks": response["summary_data"]["total_blocks"],
+                "totalNodes": response["summary_data"]["nodes_count"],
+            },
+        }
+    # print(result)
+    return jsonify(result)
 
 @app.route("/api/explore-block", methods=["POST"])
 def explore_block():
@@ -85,6 +122,15 @@ def explore_block():
 
 @app.route("/api/generate-query-plan", methods=["POST"])
 def generate_query_plan():
+    plan = request.json["plan"]
+    url = visualize_query_plan(plan)  # Generate the image
+
+    # Assuming the image is saved in a static directory
+    image_url = url_for("static", filename=url)
+    return jsonify({"imageUrl": image_url})
+
+@app.route("/api/generate-alternative-query-plan", methods=["POST"])
+def process_whatif_query():
     plan = request.json["plan"]
     url = visualize_query_plan(plan)  # Generate the image
 

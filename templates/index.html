@@ -155,27 +155,28 @@
                 class="card-body pt-4 p-3"
                 style="height: 600px; overflow: scroll"
               >
-                <ul class="list-group"></ul>
+                <ul class="list-group" id="main-query-list"></ul>
               </div>
             </div>
           </div>
           <div class="col-md-5">
             <div class="card h-100 mb-4">
               <div class="card-header pb-0 px-3">
-                <div class="row">
-                  <h6 class="mb-0">Natural Language Description of QEP</h6>
+                <div class="col-6 text-end">
+                  <a
+                    class="btn bg-gradient-dark mb-0"
+                    href="javascript:;"
+                    onclick="openAddAlternateQueryModal();"
+                  >
+                    <i class="fas fa-plus"></i>&nbsp;&nbsp;Generate What If Question
+                  </a>
                 </div>
               </div>
               <div
                 class="card-body pt-4 p-3"
-                id="qep_nl"
                 style="height: 600px; overflow: scroll"
               >
-                <h6
-                  class="text-uppercase text-body text-xs font-weight-bolder mb-3"
-                >
-                  Please select / input a query.
-                </h6>
+                <ul class="list-group" id="alternate-query-list"></ul>
               </div>
             </div>
           </div>
@@ -412,7 +413,9 @@
           </div>
         </div>
       </div>
-      <!-- Bootstrap Modal -->
+
+<!-- Bootstrap Modals -->
+      <!-- Bootstrap Modal for Editing Original Query -->
       <div
         class="modal fade"
         id="editQueryModal"
@@ -459,7 +462,7 @@
         </div>
       </div>
 
-      <!-- Bootstrap Modal for Adding New Query -->
+      <!-- Bootstrap Modal for Adding Original Query -->
       <div
         class="modal fade"
         id="addQueryModal"
@@ -500,6 +503,100 @@
                 onclick="saveNewQuery()"
               >
                 Run
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bootstrap Modal for Editing Alternate Query -->
+      <div
+        class="modal fade"
+        id="editAlternateQueryModal"
+        tabindex="-1"
+        aria-labelledby="editAlternateQueryModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editAlternateQueryModalLabel">Edit What if Question</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <textarea
+                id="alternate-modal-query-input"
+                class="form-control"
+                rows="4"
+              ></textarea>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary"
+                id="modal-save-btn"
+                onclick="saveEditedAlternateQuery()"
+              >
+                Run
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bootstrap Modal for Adding Alternate Query -->
+      <div
+        class="modal fade"
+        id="addAlternateQueryModal"
+        tabindex="-1"
+        aria-labelledby="addAlternateQueryModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addAlternateQueryModalLabel">What if ...?</h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <textarea
+                id="add-alternate-modal-query-input"
+                class="form-control"
+                rows="4"
+              ></textarea>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary"
+                id="add-modal-save-btn"
+                onclick="saveNewAlternateQuery()"
+              >
+                Generate
               </button>
             </div>
           </div>
@@ -706,11 +803,13 @@
       window.onload = function () {
         populateQueries();
       };
+
+// interacting with original SQL Queries
       function populateQueries() {
         fetch("/api/getSampleQueries")
           .then((response) => response.json())
           .then((queries) => {
-            const listGroup = document.querySelector(".list-group");
+            const listGroup = document.querySelector("#main-query-list");
             listGroup.innerHTML = ""; // Clear existing list
 
             queries.forEach((query, index) => {
@@ -727,6 +826,7 @@
                 <div class="btn-group" role="group" aria-label="Query actions">
                     <button class="btn btn-link text-dark px-3 mb-0 edit-query-btn" data-query="${query}" data-index="${index}"><i class="fas fa-pencil-alt text-dark me-2" aria-hidden="true"></i>Edit</button>
                     <button class="btn btn-link text-primary px-3 mb-0 run-query-btn" data-query="${query}"><i class="fas fa-play text-primary me-2" aria-hidden="true"></i>Run</button>
+                    <button class="btn btn-link text-danger px-3 mb-0 delete-query-btn" data-index="${index}"><i class="fas fa-trash-alt text-danger me-2" aria-hidden="true"></i>Delete</button>
                 </div>`;
               listGroup.appendChild(listItem);
             });
@@ -742,6 +842,13 @@
             document.querySelectorAll(".run-query-btn").forEach((button) => {
               button.addEventListener("click", function () {
                 runQuery(this.getAttribute("data-query"));
+              });
+            });
+
+            document.querySelectorAll(".delete-query-btn").forEach((button) => {
+              button.addEventListener("click", function () {
+                const index = this.getAttribute("data-index");
+                deleteQuery(index);
               });
             });
           });
@@ -793,6 +900,22 @@
         modal.show();
       }
 
+      function deleteQuery(index) {
+        // Confirm deletion
+        const confirmDelete = confirm("Are you sure you want to delete this query?");
+        if (!confirmDelete) {
+          return; // Exit the function if the user cancels the deletion
+        }
+
+        // Remove the query item from the list
+        const listItem = document.getElementById(`query-item-${index}`);
+        if (listItem) {
+          listItem.remove();
+        }
+
+        // Optionally, you can also remove any associated data or perform additional cleanup here
+      }
+
       function saveNewQuery() {
         const newQuery = document
           .getElementById("add-modal-query-input")
@@ -805,7 +928,7 @@
         }
 
         // Assuming you have a list group in your HTML to display queries
-        const listGroup = document.querySelector(".list-group");
+        const listGroup = document.querySelector("#main-query-list");
         const index = listGroup.children.length; // New index for the new query
         const listItem = document.createElement("li");
         listItem.setAttribute("id", `query-item-${index}`);
@@ -821,6 +944,7 @@
           <div class="btn-group" role="group" aria-label="Query actions">
               <button class="btn btn-link text-dark px-3 mb-0 edit-query-btn" data-query="${newQuery}" data-index="${index}"><i class="fas fa-pencil-alt text-dark me-2" aria-hidden="true"></i>Edit</button>
               <button class="btn btn-link text-primary px-3 mb-0 run-query-btn" data-query="${newQuery}"><i class="fas fa-play text-primary me-2" aria-hidden="true"></i>Run</button>
+              <button class="btn btn-link text-danger px-3 mb-0 delete-query-btn" data-index="${index}"><i class="fas fa-trash-alt text-danger me-2" aria-hidden="true"></i>Delete</button>
           </div>`;
         listGroup.appendChild(listItem);
 
@@ -835,12 +959,137 @@
           .addEventListener("click", function () {
             runQuery(newQuery);
           });
+        listItem
+          .querySelector(".delete-query-btn")
+          .addEventListener("click", function () {
+            deleteQuery(index);
+          });
 
         runQuery(newQuery); // TO FIX: the query doesnt run at the moment, it only gets added to the querylist!!
 
         // Close the modal
         const modal = bootstrap.Modal.getInstance(
           document.getElementById("addQueryModal")
+        );
+        modal.hide();
+      }
+
+// interacting with what if queries
+      function editAlternateQuery(query, index) {
+        const modal = new bootstrap.Modal(
+          document.getElementById("editAlternateQueryModal")
+        );
+        document.getElementById("alternate-modal-query-input").value = query.toUpperCase();
+        document
+          .getElementById("modal-save-btn")
+          .setAttribute("data-index", index);
+        modal.show();
+      }
+
+      function saveEditedAlternateQuery() {
+        const index = document
+          .getElementById("modal-save-btn")
+          .getAttribute("data-index");
+        const editedQuery = document
+          .getElementById("alternate-modal-query-input")
+          .value.toUpperCase();
+        
+        // Update the alternate query in the list
+        document.getElementById(`alternate-query-text-${index}`).textContent = editedQuery;
+        
+        // Update the data-query attribute of the Run button
+        const runButton = document.querySelector(
+          `#alternate-query-item-${index} .run-query-btn`
+        );
+        runButton.setAttribute("data-query", editedQuery);
+
+        // Run the edited query
+        runQuery(editedQuery);
+
+        // Close the modal
+        const modal = bootstrap.Modal.getInstance(
+          document.getElementById("editQueryModal")
+        );
+        modal.hide();
+      }
+
+      function openAddAlternateQueryModal() {
+        document.getElementById("add-alternate-modal-query-input").value = ""; // Clear any existing input
+        const modal = new bootstrap.Modal(
+          document.getElementById("addAlternateQueryModal")
+        );
+        modal.show();
+      }
+
+      function deleteAlternateQuery(index) {
+        // Confirm deletion
+        const confirmDelete = confirm("Are you sure you want to delete this question?");
+        if (!confirmDelete) {
+          return; // Exit the function if the user cancels the deletion
+        }
+
+        // Remove the alternate query item from the list
+        const listItem = document.getElementById(`alternate-query-item-${index}`);
+        if (listItem) {
+          listItem.remove();
+        }
+      }
+
+      function saveNewAlternateQuery() {
+        const newQuery = document
+          .getElementById("add-alternate-modal-query-input")
+          .value.toUpperCase();
+
+        // Check if the new query is not empty
+        if (newQuery.trim() === "") {
+          alert("Please enter a question.");
+          return; // Exit the function if the query is empty
+        }
+
+        // Assuming you have a list group for alternate queries
+        const listGroup = document.querySelector("#alternate-query-list");
+        const index = listGroup.children.length; // New index for the alternate query
+        const listItem = document.createElement("li");
+        listItem.setAttribute("id", `alternate-query-item-${index}`);
+        listItem.setAttribute(
+          "class",
+          "list-group-item border-0 d-flex align-items-center p-3 mb-1 bg-gray-100 border-radius-lg"
+        );
+
+        listItem.innerHTML = `
+          <div class="me-auto">
+              <span class="text-sm" id="alternate-query-text-${index}">${newQuery}</span>
+          </div>
+          <div class="btn-group" role="group" aria-label="Query actions">
+              <button class="btn btn-link text-dark px-3 mb-0 edit-query-btn" data-query="${newQuery}" data-index="${index}"><i class="fas fa-pencil-alt text-dark me-2" aria-hidden="true"></i>Edit</button>
+              <button class="btn btn-link text-primary px-3 mb-0 run-query-btn" data-query="${newQuery}"><i class="fas fa-play text-primary me-2" aria-hidden="true"></i>Run</button>
+              <button class="btn btn-link text-danger px-3 mb-0 delete-query-btn" data-index="${index}"><i class="fas fa-trash-alt text-danger me-2" aria-hidden="true"></i>Delete</button>
+          </div>`;
+
+        listGroup.appendChild(listItem);
+
+        // Attach event listeners to the new buttons
+        listItem
+          .querySelector(".edit-query-btn")
+          .addEventListener("click", function () {
+            editAlternateQuery(newQuery, index);
+          });
+        listItem
+          .querySelector(".run-query-btn")
+          .addEventListener("click", function () {
+            runAlternateQuery(newQuery);
+          });
+        listItem
+          .querySelector(".delete-query-btn")
+          .addEventListener("click", function () {
+            deleteAlternateQuery(index);
+          });
+        // Run the new alternate query
+        runAlternateQuery(newQuery);
+
+        // Close the modal
+        const modal = bootstrap.Modal.getInstance(
+          document.getElementById("addAlternateQueryModal")
         );
         modal.hide();
       }
@@ -971,55 +1220,6 @@
             let query = data.query;
             console.log(data);
             data = data.data;
-            //sample
-            /*
-          data = {
-            "chartData": [
-              {
-                "relation": "customer",
-                "totalBlock": 3900,
-
-          "usedBlocks": {
-            "indexes": [1, 3, 4, 7]
-          }
-              },
-              {
-                "relation": "nation",
-                "usedBlock": 2400,
-                "totalBlock": 3900,
-
-          "usedBlocks": {
-            "indexes": [1, 3, 4, 7]
-          }
-              }
-            ],
-            "tableData": {
-              "columns": ["ctid for CUSTOMER", "ctid for NATION", "record data"],
-              "records": [
-                ["(0,6)", "(0,21)", "Customer#000000", "PEUUUU", "Test"],
-                ["(0,8)", "(0,21)", "Customer#123123123", "PEUUUU", "Test"]
-                // ... other records ...
-              ]
-            },
-            "queryPlan": {
-              "Plan": {
-                "Node Type": "Sort",
-                // ... other Plan details ...
-                "Plans": [
-                  // ... Nested Plans ...
-                ]
-              },
-              "Planning Time": 0.253,
-              "Triggers": [],
-              "Execution Time": 25.418
-            },
-            "additionalDetails": {
-              "naturalExplanation": "blahblahblah",
-              "bufferSize": "3020 bytes",
-              "totalCost": 10000
-            }
-          }
-          */
             // Your existing code to insert content into the pre tag
             console.log(data.haveCtids);
             console.log("here");
@@ -1031,6 +1231,8 @@
             viewBlkButton.addEventListener("click", function () {
               viewAllAccessedBlk(data.chartData);
             });
+// Remove Natural Explanation features -- Not implemented in our proj
+/*
             document.querySelector("#qep_nl").innerHTML = `
     <h6 class="text-uppercase text-body text-xs font-weight-bolder mb-3">Query Result:</h6>
     <pre>${JSON.stringify(
@@ -1047,6 +1249,127 @@
             preTag.style.whiteSpace = "pre-wrap"; // Enable word wrapping
             preTag.style.wordWrap = "break-word"; // Break words to prevent horizontal overflow
             preTag.style.maxWidth = "100%"; // Set a maximum width if desired
+*/
+            console.log(data.chartData);
+            // Load Chart with chartData from API
+            loadChart(data.chartData);
+
+            // Load Tree (assuming you have a function loadTree that takes part of the data)
+            loadTree(data.imageUrl); // Adjust 'someTreeData' based on your actual data structure
+
+            // Load Hit Block
+            console.log("Total Blocks:", data.additionalDetails.totalBlocks);
+            console.log(
+              "Total Blocks:",
+              data.additionalDetails.totalBlocks.hit_blocks
+            );
+            updateHitBlock(data.additionalDetails.totalBlocks.hit_blocks);
+
+            // Load Read Block
+            updateReadBlock(data.additionalDetails.totalBlocks.read_blocks);
+
+            // Load Buffer Size
+            updateBufferSize(
+              data.additionalDetails.totalBlocks.hit_blocks +
+                data.additionalDetails.totalBlocks.read_blocks
+            );
+
+            // Load Total Cost
+            console.log("Total cost:", data.additionalDetails.totalCost);
+            updateTotalCost(data.additionalDetails.totalCost);
+
+            console.log(data);
+            if (!data.isAggregation && data.haveCtids) {
+              // Load Table with tableData from API
+              var tableData = data.tableData;
+              var pageSize = 10;
+              var currentPage = 1;
+              var startIndex = (currentPage - 1) * pageSize;
+              var endIndex = Math.min(
+                startIndex + pageSize,
+                tableData.record.length
+              );
+              var pageData = tableData.record.slice(startIndex, endIndex);
+              addPaginationControls(tableData, pageSize, currentPage);
+              populateTable(
+                tableData.col,
+                tableData.record,
+                pageSize,
+                currentPage,
+                data.isAggregation
+              );
+            } else {
+              // Load Table with tableData from API
+              var tableData = data.tableData;
+              var cols = tableData.col.filter(
+                (element) => !element.includes("ctid")
+              );
+
+              populateTable(
+                cols,
+                tableData.result,
+                pageSize,
+                currentPage,
+                true
+              );
+            }
+            // pageData
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            // Handle errors here
+          });
+      }
+
+      // Fake Logic, placeholder for whatif.py logic
+      function runAlternateQuery(query) {
+        var cardBody = document.getElementById("visualisationCard");
+        cardBody.innerHTML = ""; // Clear existing content
+        document.getElementById("viewBlkBtn").style.display = "none";
+        document.getElementById("allAccessedBlkPane").style.display = "none";
+
+        var nav = document.querySelector("#pagination");
+        nav.innerHTML = "";
+        const tabsContainer = document.getElementById("tableTabs");
+        tabsContainer.innerHTML = "";
+        const contentContainer = document.getElementById("tableTabsContent");
+        contentContainer.innerHTML = "";
+
+        var n_query = query.replace(/\n|\t/g, " ").trim();
+
+        tables_extracted = extractTablesFromQuery(n_query.toUpperCase());
+        console.log(
+          JSON.stringify({
+            query: n_query,
+            relations: tables_extracted,
+          })
+        );
+        fetch("/api/runAlternateQuery", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: n_query,
+            relations: tables_extracted,
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            let query = data.query;
+            console.log(data);
+            data = data.data;
+            // Your existing code to insert content into the pre tag
+            console.log(data.haveCtids);
+            console.log("here");
+            if (data.haveCtids)
+              document.getElementById("viewBlkBtn").style.display = "block";
+
+            var viewBlkButton = document.getElementById("viewBlkBtn");
+
+            viewBlkButton.addEventListener("click", function () {
+              viewAllAccessedBlk(data.chartData);
+            });
 
             console.log(data.chartData);
             // Load Chart with chartData from API
