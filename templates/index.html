@@ -132,8 +132,10 @@
     >
       <!-- End Navbar -->
       <div class="container-fluid py-3">
+
         <div class="row mb-4">
-          <div class="col-md-7">
+
+          <div class="col-md-6">
             <div class="card">
               <div class="card-header pb-0 px-3">
                 <div class="row">
@@ -159,8 +161,9 @@
               </div>
             </div>
           </div>
-          <div class="col-md-5">
-            <div class="card h-100 mb-4">
+
+          <div class="col-md-6">
+            <div class="card">
               <div class="card-header pb-0 px-3">
                 <div class="col-6 text-end">
                   <a
@@ -180,9 +183,11 @@
               </div>
             </div>
           </div>
+
         </div>
 
         <div class="row" style="display: none" id="allAccessedBlkPane">
+
           <div class="col-12">
             <div class="card mb-4">
               <div class="card-header">
@@ -201,9 +206,11 @@
               </div>
             </div>
           </div>
+
         </div>
 
         <div class="row">
+
           <div class="col-12">
             <div class="card mb-4">
               <div class="row">
@@ -239,10 +246,12 @@
               </div>
             </div>
           </div>
+
         </div>
 
         <div class="row mb-4">
-          <div class="col-lg-7 mb-lg-0 mb-4">
+
+          <div class="col-lg-8 mb-4">
             <div class="card z-index-2 h-100">
               <div class="card-header pb-0 pt-3 bg-transparent">
                 <h6 class="text-capitalize">
@@ -253,165 +262,351 @@
             </div>
           </div>
 
-          <div class="col-lg-5 mb-lg-0 mb-4">
-            <div class="card card-carousel overflow-hidden h-100 p-0">
-              <div
-                id="carouselExampleCaptions"
-                class="carousel slide h-100"
-                data-bs-ride="carousel"
-              >
-                <div class="carousel-inner border-radius-lg h-100"></div>
-                <button
-                  class="carousel-control-prev w-5 me-3"
-                  type="button"
-                  data-bs-target="#carouselExampleCaptions"
-                  data-bs-slide="prev"
+          <div class="col-lg-4 mb-4">
+
+            <div class="row mb-4">
+
+              <div class="col-6 mb-4">
+                <div class="card">
+                  <div class="card-body p-3">
+                    <div class="row">
+                      <div class="col-8">
+                        <div class="numbers">
+                          <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                            Hit Block
+                          </p>
+                          <h5 class="font-weight-bolder" id="hit-block-value">
+                          </h5>
+                          <!-- <p class="mb-0">
+                          <span class="text-danger text-sm font-weight-bolder">-2%</span>
+                          since last quarter
+                        </p> -->
+                        </div>
+                      </div>
+                      <div class="col-4 text-end">
+                        <div
+                          class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle"
+                        >
+                          <i class="fa fa-bell text-lg opacity-10"></i>
+                          <!-- Replace with an appropriate class for a database icon -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6 mb-4">
+                <div class="card">
+                  <div class="card-body p-3">
+                    <div class="row">
+                      <div class="col-8">
+                        <div class="numbers">
+                          <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                            Read Block
+                          </p>
+                          <h5 class="font-weight-bolder" id="read-block-value">
+                          </h5>
+                          <!-- <p class="mb-0">
+                          <span class="text-success text-sm font-weight-bolder">+5%</span> than last month
+                        </p> -->
+                        </div>
+                      </div>
+                      <div class="col-4 text-end">
+                        <div
+                          class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle"
+                        >
+                          <i class="fa fa-clock text-lg opacity-10"></i>
+                          <!-- Replace with an appropriate class for a database icon -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6 mb-4">
+                <div class="card">
+                  <div class="card-body p-3">
+                    <div class="row">
+                      <div class="col-8">
+                        <div class="numbers">
+                          <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                            Buffer Size
+                          </p>
+                          <h5 class="font-weight-bolder" id="buffer-size-value">
+                          </h5>
+                          <!-- <p class="mb-0" id="buffer-size-change"> -->
+                          <!-- can insert additional info if needed, using updateBufferSize function -->
+                          <!-- </p> -->
+                        </div>
+                      </div>
+                      <div class="col-4 text-end">
+                        <div
+                          class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle"
+                        >
+                          <i
+                            class="ni ni-chart-bar-32 text-lg opacity-10"
+                            aria-hidden="true"
+                          ></i>
+                          <!-- Replace with an appropriate class for a gauge/meter icon -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6 mb-4">
+                <div class="card">
+                  <div class="card-body p-3">
+                    <div class="row">
+                      <div class="col-8">
+                        <div class="numbers">
+                          <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                            Total Cost
+                          </p>
+                          <h5 class="font-weight-bolder" id="total-cost-value">
+                          </h5>
+                          <!-- <p class="mb-0" id="total-cost-change">>
+                          <span class="text-success text-sm font-weight-bolder">+3%</span>
+                          since last week
+                        </p> -->
+                        </div>
+                      </div>
+                      <div class="col-4 text-end">
+                        <div
+                          class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle"
+                        >
+                          <i
+                            class="ni ni-money-coins text-lg opacity-10"
+                            aria-hidden="true"
+                          ></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+
+          <div class="row mb-4">
+
+            <div class="col-12 mb-4">
+              <div class="card card-carousel overflow-hidden h-100 p-0">
+                <div
+                  id="carouselExampleCaptions"
+                  class="carousel slide h-100"
+                  data-bs-ride="carousel"
                 >
-                  <i class="fas fa-play me-2" aria-hidden="true"></i>
-                  <span class="visually-hidden">Previous</span>
-                </button>
-                <button
-                  class="carousel-control-next w-5 me-3"
-                  type="button"
-                  data-bs-target="#carouselExampleCaptions"
-                  data-bs-slide="next"
-                >
-                  <i
-                    class="fas fa-play text-primary me-2"
-                    aria-hidden="true"
-                  ></i>
-                  <span class="visually-hidden">Next</span>
-                </button>
+                  <div class="carousel-inner border-radius-lg h-100" id="block-analysis"></div>
+                  <button
+                    class="carousel-control-prev w-5 me-3"
+                    type="button"
+                    data-bs-target="#carouselExampleCaptions"
+                    data-bs-slide="prev"
+                  >
+                    <i class="fas fa-play me-2" aria-hidden="true"></i>
+                    <span class="visually-hidden">Previous</span>
+                  </button>
+                  <button
+                    class="carousel-control-next w-5 me-3"
+                    type="button"
+                    data-bs-target="#carouselExampleCaptions"
+                    data-bs-slide="next"
+                  >
+                    <i
+                      class="fas fa-play text-primary me-2"
+                      aria-hidden="true"
+                    ></i>
+                    <span class="visually-hidden">Next</span>
+                  </button>
+                </div>
               </div>
             </div>
+
           </div>
+
         </div>
 
         <div class="row">
-          <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="numbers">
-                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
-                        Hit Block
-                      </p>
-                      <h5 class="font-weight-bolder" id="hit-block-value">
-                        Please select / input a query
-                      </h5>
-                      <!-- <p class="mb-0">
-                      <span class="text-danger text-sm font-weight-bolder">-2%</span>
-                      since last quarter
-                    </p> -->
-                    </div>
-                  </div>
-                  <div class="col-4 text-end">
-                    <div
-                      class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle"
-                    >
-                      <i class="fa fa-bell text-lg opacity-10"></i>
-                      <!-- Replace with an appropriate class for a database icon -->
+
+          <div class="col-lg-8 mb-4">
+            <div class="card z-index-2 h-100">
+              <div class="card-header pb-0 pt-3 bg-transparent">
+                <h6 class="text-capitalize">
+                  Alternate Query Plan Visualisation
+                </h6>
+              </div>
+              <div class="card-body p-3" id="alternateVisualisationCard"></div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 mb-4">
+
+            <div class="row mb-4">
+
+              <div class="col-6 mb-4">
+                <div class="card">
+                  <div class="card-body p-3">
+                    <div class="row">
+                      <div class="col-8">
+                        <div class="numbers">
+                          <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                            Hit Block
+                          </p>
+                          <h5 class="font-weight-bolder" id="alternate-hit-block-value">
+                          </h5>
+                          <!-- <p class="mb-0">
+                          <span class="text-danger text-sm font-weight-bolder">-2%</span>
+                          since last quarter
+                        </p> -->
+                        </div>
+                      </div>
+                      <div class="col-4 text-end">
+                        <div
+                          class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle"
+                        >
+                          <i class="fa fa-bell text-lg opacity-10"></i>
+                          <!-- Replace with an appropriate class for a database icon -->
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <div class="col-xl-3 col-sm-6">
-            <div class="card">
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="numbers">
-                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
-                        Read Block
-                      </p>
-                      <h5 class="font-weight-bolder" id="read-block-value">
-                        Please select / input a query
-                      </h5>
-                      <!-- <p class="mb-0">
-                      <span class="text-success text-sm font-weight-bolder">+5%</span> than last month
-                    </p> -->
-                    </div>
-                  </div>
-                  <div class="col-4 text-end">
-                    <div
-                      class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle"
-                    >
-                      <i class="fa fa-clock text-lg opacity-10"></i>
-                      <!-- Replace with an appropriate class for a database icon -->
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="numbers">
-                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
-                        Buffer Size
-                      </p>
-                      <h5 class="font-weight-bolder" id="buffer-size-value">
-                        Please select / input a query
-                      </h5>
-                      <!-- <p class="mb-0" id="buffer-size-change"> -->
-                      <!-- can insert additional info if needed, using updateBufferSize function -->
-                      <!-- </p> -->
-                    </div>
-                  </div>
-                  <div class="col-4 text-end">
-                    <div
-                      class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle"
-                    >
-                      <i
-                        class="ni ni-chart-bar-32 text-lg opacity-10"
-                        aria-hidden="true"
-                      ></i>
-                      <!-- Replace with an appropriate class for a gauge/meter icon -->
+
+              <div class="col-6 mb-4">
+                <div class="card">
+                  <div class="card-body p-3">
+                    <div class="row">
+                      <div class="col-8">
+                        <div class="numbers">
+                          <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                            Read Block
+                          </p>
+                          <h5 class="font-weight-bolder" id="alternate-read-block-value">
+                          </h5>
+                          <!-- <p class="mb-0">
+                          <span class="text-success text-sm font-weight-bolder">+5%</span> than last month
+                        </p> -->
+                        </div>
+                      </div>
+                      <div class="col-4 text-end">
+                        <div
+                          class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle"
+                        >
+                          <i class="fa fa-clock text-lg opacity-10"></i>
+                          <!-- Replace with an appropriate class for a database icon -->
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-            <div class="card">
-              <div class="card-body p-3">
-                <div class="row">
-                  <div class="col-8">
-                    <div class="numbers">
-                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
-                        Total Cost
-                      </p>
-                      <h5 class="font-weight-bolder" id="total-cost-value">
-                        Please select / input a query
-                      </h5>
-                      <!-- <p class="mb-0" id="total-cost-change">>
-                      <span class="text-success text-sm font-weight-bolder">+3%</span>
-                      since last week
-                    </p> -->
-                    </div>
-                  </div>
-                  <div class="col-4 text-end">
-                    <div
-                      class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle"
-                    >
-                      <i
-                        class="ni ni-money-coins text-lg opacity-10"
-                        aria-hidden="true"
-                      ></i>
+
+              <div class="col-6 mb-4">
+                <div class="card">
+                  <div class="card-body p-3">
+                    <div class="row">
+                      <div class="col-8">
+                        <div class="numbers">
+                          <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                            Buffer Size
+                          </p>
+                          <h5 class="font-weight-bolder" id="alternate-buffer-size-value">
+                          </h5>
+                          <!-- <p class="mb-0" id="buffer-size-change"> -->
+                          <!-- can insert additional info if needed, using updateBufferSize function -->
+                          <!-- </p> -->
+                        </div>
+                      </div>
+                      <div class="col-4 text-end">
+                        <div
+                          class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle"
+                        >
+                          <i
+                            class="ni ni-chart-bar-32 text-lg opacity-10"
+                            aria-hidden="true"
+                          ></i>
+                          <!-- Replace with an appropriate class for a gauge/meter icon -->
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+
+              <div class="col-6 mb-4">
+                <div class="card">
+                  <div class="card-body p-3">
+                    <div class="row">
+                      <div class="col-8">
+                        <div class="numbers">
+                          <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                            Total Cost
+                          </p>
+                          <h5 class="font-weight-bolder" id="alternate-total-cost-value">
+                          </h5>
+                        </div>
+                      </div>
+                      <div class="col-4 text-end">
+                        <div
+                          class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle"
+                        >
+                          <i
+                            class="ni ni-money-coins text-lg opacity-10"
+                            aria-hidden="true"
+                          ></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
             </div>
+
+          <div class="row mb-4">
+
+            <div class="col-12 mb-4">
+              <div class="card card-carousel overflow-hidden h-100 p-0">
+                <div
+                  id="carouselAlternateExampleCaptions"
+                  class="carousel slide h-100"
+                  data-bs-ride="carousel"
+                >
+                  <div class="carousel-inner border-radius-lg h-100" id="alternate-block-analysis"></div>
+                  <button
+                    class="carousel-control-prev w-5 me-3"
+                    type="button"
+                    data-bs-target="#carouselAlternateExampleCaptions"
+                    data-bs-slide="prev"
+                  >
+                    <i class="fas fa-play me-2" aria-hidden="true"></i>
+                    <span class="visually-hidden">Previous</span>
+                  </button>
+                  <button
+                    class="carousel-control-next w-5 me-3"
+                    type="button"
+                    data-bs-target="#carouselExampleCaptions"
+                    data-bs-slide="next"
+                  >
+                    <i
+                      class="fas fa-play text-primary me-2"
+                      aria-hidden="true"
+                    ></i>
+                    <span class="visually-hidden">Next</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
+
         </div>
+
       </div>
 
 <!-- Bootstrap Modals -->
@@ -1323,7 +1518,7 @@
 
       // Fake Logic, placeholder for whatif.py logic
       function runAlternateQuery(query) {
-        var cardBody = document.getElementById("visualisationCard");
+        var cardBody = document.getElementById("alternateVisualisationCard");
         cardBody.innerHTML = ""; // Clear existing content
         document.getElementById("viewBlkBtn").style.display = "none";
         document.getElementById("allAccessedBlkPane").style.display = "none";
@@ -1373,10 +1568,10 @@
 
             console.log(data.chartData);
             // Load Chart with chartData from API
-            loadChart(data.chartData);
+            loadAlternateChart(data.chartData);
 
             // Load Tree (assuming you have a function loadTree that takes part of the data)
-            loadTree(data.imageUrl); // Adjust 'someTreeData' based on your actual data structure
+            loadAlternateTree(data.imageUrl); // Adjust 'someTreeData' based on your actual data structure
 
             // Load Hit Block
             console.log("Total Blocks:", data.additionalDetails.totalBlocks);
@@ -1384,20 +1579,20 @@
               "Total Blocks:",
               data.additionalDetails.totalBlocks.hit_blocks
             );
-            updateHitBlock(data.additionalDetails.totalBlocks.hit_blocks);
+            updateAlternateHitBlock(data.additionalDetails.totalBlocks.hit_blocks);
 
             // Load Read Block
-            updateReadBlock(data.additionalDetails.totalBlocks.read_blocks);
+            updateAlternateReadBlock(data.additionalDetails.totalBlocks.read_blocks);
 
             // Load Buffer Size
-            updateBufferSize(
+            updateAlternateBufferSize(
               data.additionalDetails.totalBlocks.hit_blocks +
                 data.additionalDetails.totalBlocks.read_blocks
             );
 
             // Load Total Cost
             console.log("Total cost:", data.additionalDetails.totalCost);
-            updateTotalCost(data.additionalDetails.totalCost);
+            updateAlternateTotalCost(data.additionalDetails.totalCost);
 
             console.log(data);
             if (!data.isAggregation && data.haveCtids) {
@@ -1748,8 +1943,19 @@
         cardBody.appendChild(img); // Append the image to the card body
       }
 
+      function loadAlternateTree(imageUrl) {
+        var cardBody = document.getElementById("alternateVisualisationCard");
+        cardBody.innerHTML = ""; // Clear existing content
+        var img = document.createElement("img");
+        img.alt = "Query Execution Plan";
+        img.style.width = "100%";
+
+        img.src = imageUrl; // Set the image source to the URL
+        cardBody.appendChild(img); // Append the image to the card body
+      }
+
       function loadChart(chartData) {
-        var carouselInner = document.querySelector(".carousel-inner");
+        var carouselInner = document.querySelector("#block-analysis");
         carouselInner.innerHTML = "";
 
         chartData.forEach(function (data, index) {
@@ -1836,6 +2042,95 @@
         });
       }
 
+      function loadAlternateChart(chartData) {
+        var carouselInner = document.querySelector("#alternate-block-analysis");
+        carouselInner.innerHTML = "";
+
+        chartData.forEach(function (data, index) {
+          // Create carousel item
+          var carouselItem = document.createElement("div");
+          carouselItem.className =
+            "carousel-item h-100" + (index === 0 ? " active" : "");
+
+          // Create card
+          var card = document.createElement("div");
+          card.className = "card z-index-2 h-100";
+
+          // Create card header
+          var cardHeader = document.createElement("div");
+          cardHeader.className = "card-header pb-0 pt-3 bg-transparent";
+          var title = document.createElement("h6");
+          title.className = "text-capitalize";
+          title.textContent =
+            "Block Usage Analysis - " +
+            getRelationName(data.relation_name, tables_extracted) +
+            "[Total Blocks: " +
+            data.total_blocks +
+            "]";
+          cardHeader.appendChild(title);
+
+          // Create card body
+          var cardBody = document.createElement("div");
+          cardBody.className = "card-body p-3";
+          var chartDiv = document.createElement("div");
+          chartDiv.className = "chart";
+          var canvas = document.createElement("canvas");
+          canvas.id = "chart-pie" + index;
+          canvas.className = "chart-canvas";
+          canvas.height = 300;
+          chartDiv.appendChild(canvas);
+          cardBody.appendChild(chartDiv);
+
+          // Append card to carousel item
+          card.appendChild(cardHeader);
+          card.appendChild(cardBody);
+          carouselItem.appendChild(card);
+
+          // Append carousel item to carousel
+          carouselInner.appendChild(carouselItem);
+          console.log(data.used_blocks.number);
+          console.log(data.totalBlocks);
+          // Initialize Chart.js
+          var ctx = canvas.getContext("2d");
+          new Chart(ctx, {
+            type: "pie",
+            data: {
+              labels: ["Used Block", "Remaining Block"],
+              datasets: [
+                {
+                  label: "Block Usage",
+                  data: [
+                    data.used_blocks.number,
+                    data.total_blocks - data.used_blocks.number,
+                  ],
+                  backgroundColor: [
+                    "rgba(54, 162, 235, 0.2)",
+                    "rgba(255, 206, 86, 0.2)",
+                  ],
+                  borderColor: [
+                    "rgba(54, 162, 235, 1)",
+                    "rgba(255, 206, 86, 1)",
+                  ],
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: true,
+                  position: "right",
+                },
+              },
+            },
+          });
+          // Optionally, add a label for the total number of blocks
+        });
+      }
+
+// Original Queries
       function updateHitBlock(hitBlock) {
         const hitBlockValueElement = document.getElementById("hit-block-value");
         hitBlockValueElement.textContent = `${hitBlock}`;
@@ -1860,6 +2155,33 @@
           document.getElementById("total-cost-value");
         totalCostValueElement.textContent = `${totalCost}`;
       }
+
+// What If Queries
+      function updateAlternateHitBlock(hitBlock) {
+        const hitBlockValueElement = document.getElementById("alternate-hit-block-value");
+        hitBlockValueElement.textContent = `${hitBlock}`;
+      }
+
+      function updateAlternateReadBlock(readBlock) {
+        const readBlockValueElement =
+          document.getElementById("alternate-read-block-value");
+        readBlockValueElement.textContent = `${readBlock}`;
+      }
+
+      function updateAlternateBufferSize(bufferSize) {
+        console.log("Buffer size received:", bufferSize);
+        const bufferSizeValueElement =
+          document.getElementById("alternate-buffer-size-value");
+        bufferSizeValueElement.textContent = `${bufferSize}`;
+      }
+
+      function updateAlternateTotalCost(totalCost) {
+        console.log("Total cost received:", totalCost);
+        const totalCostValueElement =
+          document.getElementById("alternate-total-cost-value");
+        totalCostValueElement.textContent = `${totalCost}`;
+      }
+
     </script>
     <script>
       var win = navigator.platform.indexOf("Win") > -1;
