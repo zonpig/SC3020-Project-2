@@ -89,7 +89,7 @@ def get_relation_block(relation, block_id):
         except ProgrammingError as e:
             print(e)
             cur.execute("ROLLBACK;")
-            return True, {"msg": f"Invalid SQL query!"}, None
+            return True, {"msg": "Invalid SQL query!"}, None
 
 
 """
@@ -125,7 +125,7 @@ def process_query(user_query, relations):
             except ProgrammingError as e:
                 print(e)
                 cur.execute("ROLLBACK;")
-                return True, {"msg": f"Invalid SQL query!"}
+                return True, {"msg": "Invalid SQL query!"}
 
         print("fetched the QEP!")
 
@@ -151,9 +151,9 @@ def process_query(user_query, relations):
         # get block analysis for query
         result["block_analysis"] = get_block_analysis(user_query, relations, connection)
 
-    except OperationalError as e:
+    except OperationalError:
         return True, {
-            "msg": f"An error has occurred: Failed to connect to the database! Please ensure that the database is running."
+            "msg": "An error has occurred: Failed to connect to the database! Please ensure that the database is running."
         }
     except Exception as e:
         return True, {"msg": f"An error has occurred: {repr(e)}"}
