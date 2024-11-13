@@ -21,7 +21,7 @@
     <!-- Nucleo Icons -->
     <link href="static/css/nucleo-icons.css" rel="stylesheet" />
     <link href="static/css/nucleo-svg.css" rel="stylesheet" />
-    <link href="/assets/vendor/nucleo/css/nucleo-icons.css" rel="stylesheet" />
+    <link href="static/css/nucleo-icons.css" rel="stylesheet" />
     <!-- Font Awesome Icons -->
     <script
       src="https://kit.fontawesome.com/42d5adcbca.js"
@@ -336,9 +336,6 @@
                           </p>
                           <h5 class="font-weight-bolder" id="buffer-size-value">
                           </h5>
-                          <!-- <p class="mb-0" id="buffer-size-change"> -->
-                          <!-- can insert additional info if needed, using updateBufferSize function -->
-                          <!-- </p> -->
                         </div>
                       </div>
                       <div class="col-4 text-end">
@@ -368,10 +365,6 @@
                           </p>
                           <h5 class="font-weight-bolder" id="total-cost-value">
                           </h5>
-                          <!-- <p class="mb-0" id="total-cost-change">>
-                          <span class="text-success text-sm font-weight-bolder">+3%</span>
-                          since last week
-                        </p> -->
                         </div>
                       </div>
                       <div class="col-4 text-end">
@@ -458,10 +451,6 @@
                           </p>
                           <h5 class="font-weight-bolder" id="alternate-hit-block-value">
                           </h5>
-                          <!-- <p class="mb-0">
-                          <span class="text-danger text-sm font-weight-bolder">-2%</span>
-                          since last quarter
-                        </p> -->
                         </div>
                       </div>
                       <div class="col-4 text-end">
@@ -488,9 +477,6 @@
                           </p>
                           <h5 class="font-weight-bolder" id="alternate-read-block-value">
                           </h5>
-                          <!-- <p class="mb-0">
-                          <span class="text-success text-sm font-weight-bolder">+5%</span> than last month
-                        </p> -->
                         </div>
                       </div>
                       <div class="col-4 text-end">
@@ -517,9 +503,6 @@
                           </p>
                           <h5 class="font-weight-bolder" id="alternate-buffer-size-value">
                           </h5>
-                          <!-- <p class="mb-0" id="buffer-size-change"> -->
-                          <!-- can insert additional info if needed, using updateBufferSize function -->
-                          <!-- </p> -->
                         </div>
                       </div>
                       <div class="col-4 text-end">
@@ -607,6 +590,129 @@
 
         </div>
 
+        <div class="row mb-4">
+          <div class="col-12 mb-4 text-center">
+            <a
+            class="btn bg-gradient-dark mb-0"
+            href="javascript:;"
+            onclick="comparePlans();"
+          >
+            <i class="fas fa-plus"></i>&nbsp;&nbsp;Compare Costs
+          </a>
+          </div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-6 mb-4">
+            <div class="card" id="difference-hit">
+              <div class="card-body p-3">
+                <div class="row">
+                  <div class="col-8">
+                    <div class="numbers">
+                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                        Hit Block Difference
+                      </p>
+                      <h5 class="font-weight-bolder" id="difference-hit-block-value">
+                      </h5>
+                    </div>
+                  </div>
+                  <div class="col-4 text-end">
+                    <div
+                      class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle"
+                    >
+                      <i class="fa fa-bell text-lg opacity-10"></i>
+                      <!-- Replace with an appropriate class for a database icon -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 mb-4">
+            <div class="card" id="difference-read">
+              <div class="card-body p-3">
+                <div class="row">
+                  <div class="col-8">
+                    <div class="numbers">
+                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                        Read Block Difference
+                      </p>
+                      <h5 class="font-weight-bolder" id="difference-read-block-value">
+                      </h5>
+                    </div>
+                  </div>
+                  <div class="col-4 text-end">
+                    <div
+                      class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle"
+                    >
+                      <i class="fa fa-clock text-lg opacity-10"></i>
+                      <!-- Replace with an appropriate class for a database icon -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 mb-4">
+            <div class="card" id="difference-buffer">
+              <div class="card-body p-3">
+                <div class="row">
+                  <div class="col-8">
+                    <div class="numbers">
+                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                        Buffer Size Difference
+                      </p>
+                      <h5 class="font-weight-bolder" id="difference-buffer-size-value">
+                      </h5>
+                    </div>
+                  </div>
+                  <div class="col-4 text-end">
+                    <div
+                      class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle"
+                    >
+                      <i
+                        class="ni ni-chart-bar-32 text-lg opacity-10"
+                        aria-hidden="true"
+                      ></i>
+                      <!-- Replace with an appropriate class for a gauge/meter icon -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 mb-4">
+            <div class="card" id="difference-cost">
+              <div class="card-body p-3">
+                <div class="row">
+                  <div class="col-8">
+                    <div class="numbers">
+                      <p class="text-sm mb-0 text-uppercase font-weight-bold">
+                        Total Cost Difference
+                      </p>
+                      <h5 class="font-weight-bolder" id="difference-total-cost-value">
+                      </h5>
+                    </div>
+                  </div>
+                  <div class="col-4 text-end">
+                    <div
+                      class="icon icon-shape bg-gradient-danger shadow-danger text-center rounded-circle"
+                    >
+                      <i
+                        class="ni ni-money-coins text-lg opacity-10"
+                        aria-hidden="true"
+                      ></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
 
 <!-- Bootstrap Modals -->
@@ -1637,6 +1743,13 @@
           });
       }
 
+      function comparePlans(){
+            // Cost Comparison
+            compareBufferSize();
+            compareHitBlock();
+            compareReadBlock();
+            compareTotalCost();
+      }
       function getRelationName(aliasOrRelationName, dictionary) {
         // Check if the name is an alias in the dictionary
         if (dictionary.hasOwnProperty(aliasOrRelationName)) {
@@ -2180,6 +2293,63 @@
         const totalCostValueElement =
           document.getElementById("alternate-total-cost-value");
         totalCostValueElement.textContent = `${totalCost}`;
+      }
+
+// Cost Comparison
+      function compareHitBlock() {
+        const newHit = parseInt(document.getElementById("alternate-hit-block-value").textContent);
+        const ogHit = parseInt(document.getElementById("hit-block-value").textContent);
+        const diff = newHit - ogHit;
+        console.log(diff);
+        document.getElementById("difference-hit-block-value").textContent = `${diff}`;
+        if (diff >= 0) {
+          document.getElementById("difference-hit").classList.add("bg-gradient-success", "text-white");
+        }
+        else {
+          document.getElementById("difference-hit").classList.add("bg-gradient-warning", "text-white");
+        }
+      }
+
+      function compareReadBlock() {
+        const newRead = parseInt(document.getElementById("alternate-read-block-value").textContent);
+        const ogRead = parseInt(document.getElementById("read-block-value").textContent);
+        const diff = newRead - ogRead;
+        console.log(diff);
+        document.getElementById("difference-read-block-value").textContent = `${diff}`;
+        if (diff >= 0) {
+          document.getElementById("difference-read").classList.add("bg-gradient-success", "text-white");
+        }
+        else {
+          document.getElementById("difference-read").classList.add("bg-gradient-warning", "text-white");
+        }
+      }
+
+      function compareBufferSize() {
+        const newSize = parseInt(document.getElementById("alternate-buffer-size-value").textContent);
+        const ogSize = parseInt(document.getElementById("buffer-size-value").textContent);
+        const diff = newSize - ogSize;
+        console.log(diff);
+        document.getElementById("difference-buffer-size-value").textContent = `${diff}`;
+        if (diff >= 0) {
+          document.getElementById("difference-buffer").classList.add("bg-gradient-success", "text-white");
+        }
+        else {
+          document.getElementById("difference-buffer").classList.add("bg-gradient-warning", "text-white");
+        }
+      }
+
+      function compareTotalCost() {
+        const newCost = parseInt(document.getElementById("alternate-total-cost-value").textContent);
+        const ogCost = parseInt(document.getElementById("total-cost-value").textContent);
+        const diff = newCost - ogCost;
+        console.log(diff);
+        document.getElementById("difference-total-cost-value").textContent = `${diff}`;
+        if (diff >= 0) {
+          document.getElementById("difference-cost").classList.add("bg-gradient-success", "text-white");
+        }
+        else {
+          document.getElementById("difference-cost").classList.add("bg-gradient-warning", "text-white");
+        }
       }
 
     </script>
