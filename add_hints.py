@@ -233,7 +233,7 @@ def generate_what_if_questions(hints):
 def bitmap_scan_specific_question(table):
     questions = [
         f"What happens if I replace BitMap Scan with a Sequential Scan on table {table[0]}?",
-        f"What happens if I replace BitMap Scan with a Index Scan on table {table[0]}?",
+        f"What happens if I replace BitMap Scan with an Index Scan on table {table[0]}?",
         f"What happens if I prevent the use of BitMap Scan for table {table[0]}?",
     ]
     return questions
@@ -273,9 +273,9 @@ def seq_scan_general_question():
 def nested_loop_specific_question(tables):
     table_a, table_b = tables
     questions = [
-        f"What happens if I change Nested Loop Join to a Hash Join for table {table_a} and {table_b}?",
-        f"What happens if I change Nested Loop Join to a Merge Join for table {table_a} and {table_b}",
-        f"What happens if I prevent the use of Nested Loop Join for table {table_a} and {table_b}?",
+        f"What happens if I change Nested Loop Join to a Hash Join for tables {table_a} and {table_b}?",
+        f"What happens if I change Nested Loop Join to a Merge Join for tables {table_a} and {table_b}",
+        f"What happens if I prevent the use of Nested Loop Join for tables {table_a} and {table_b}?",
     ]
     return questions
 
@@ -283,9 +283,9 @@ def nested_loop_specific_question(tables):
 def hash_join_specific_question(tables):
     table_a, table_b = tables
     questions = [
-        f"What happens if I change Hash Join to a Nested Loop Join for table {table_a} and {table_b}?",
-        f"What happens if I change Hash Join to a Merge Join for table {table_a} and {table_b}?",
-        f"What happens if I prevent the use of Hash Join for table {table_a} and {table_b}?",
+        f"What happens if I change Hash Join to a Nested Loop Join for tables {table_a} and {table_b}?",
+        f"What happens if I change Hash Join to a Merge Join for tables {table_a} and {table_b}?",
+        f"What happens if I prevent the use of Hash Join for tables {table_a} and {table_b}?",
     ]
     return questions
 
@@ -293,9 +293,9 @@ def hash_join_specific_question(tables):
 def merge_join_specific_question(tables):
     table_a, table_b = tables
     questions = [
-        f"What happens if I change Merge Join to a Nested Loop Join of table {table_a} and {table_b} ?",
-        f"What happens if I change Merge Join to a Hash Join of table {table_a} and {table_b} ?",
-        f"What happens if I prevent the use of Merge Join for table {table_a} and {table_b}?",
+        f"What happens if I change Merge Join to a Nested Loop Join of tables {table_a} and {table_b} ?",
+        f"What happens if I change Merge Join to a Hash Join of tables {table_a} and {table_b} ?",
+        f"What happens if I prevent the use of Merge Join for tables {table_a} and {table_b}?",
     ]
     return questions
 
@@ -312,23 +312,22 @@ def merge_join_general_question():
     return "What happens if I don't use Merge Join at all?"
 
 
-test = ["IndexScan(nation)", "SeqScan(customer)", "NestLoop(customer nation)"]
+test = ["SeqScan(nation)", "SeqScan(customer)", "HashJoin(customer nation)"]
 
 print(generate_what_if_questions(test))
 
 [
-    "What happens if I change the Index Scan of table nation to a Sequential Scan?",
-    "What happens if I change the Index Scan of table nation to a BitMap Scan?",
-    "What happens if I prevent the use of Index Scan for table nation?",
-    "What happens if I change the Sequential Scan of table customer to an Index Scan?",
-    "What happens if I change the Sequential Scan of table customer to a BitMap Scan?",
+    "What happens if I replace Sequential Scan with an Index Scan on table nation?",
+    "What happens if I replace Sequential Scan with a BitMap Scan on table nation?",
+    "What happens if I prevent the use of Sequential Scan for table nation?",
+    "What happens if I replace Sequential Scan with an Index Scan on table customer?",
+    "What happens if I replace Sequential Scan with a BitMap Scan on table customer?",
     "What happens if I prevent the use of Sequential Scan for table customer?",
-    "What happens if I change the Nested Loop Join of table customer and nation to a Hash Join?",
-    "What happens if I change the Nested Loop Join of table customer and nation to a Merge Join?",
-    "What happens if I prevent the use of Nested Loop Join for table customer and nation?",
+    "What happens if I change Hash Join to a Nested Loop Join for table customer and nation?",
+    "What happens if I change Hash Join to a Merge Join for table customer and nation?",
+    "What happens if I prevent the use of Hash Join for table customer and nation?",
+    "What happens if I don't use Hash Join at all?",
     "What happens if I don't use Sequential Scan at all?",
-    "What happens if I don't use Index Scan at all?",
-    "What happens if I don't use Nested Loop Join at all?",
 ]
 
 
