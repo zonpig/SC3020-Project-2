@@ -1,5 +1,4 @@
 import psycopg2
-from psycopg2 import sql
 
 # Define the SQL statements for creating tables
 table_creation_queries = [
@@ -171,13 +170,16 @@ try:
         cursor.execute(query)
         print("Table created successfully.")
 
-    # Commit changes and close connection
+    # Commit changes
     connection.commit()
     print("All tables created successfully.")
 
 except Exception as error:
     print(f"Error creating tables: {error}")
+
 finally:
-    if connection:
+    # Close cursor and connection if they exist
+    if "cursor" in locals():
         cursor.close()
+    if "connection" in locals():
         connection.close()

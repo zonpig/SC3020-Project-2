@@ -17,29 +17,28 @@ Hence, your software should work on any database schema and for a wide variety o
 (b) Design and implement a user-friendly graphical user interface (GUI) to support your what-if analysis software. You can imagine that through it you can choose the database schema (TPC-H in this case), specify the SQL query in the Query panel, visualize the QEP on the QEP panel which you can interactively edit for posing what-if questions. Your GUI should also have a panel to visualize the modified SQL generated based on the what-if question, and another panel to view the corresponding AQP along with cost comparison with the original QEP
 
 ## Submission Requirements
-You should submit four program files: interface.py, whatif.py, preprocessing.py, and project.py. 
+
+You should submit four program files: interface.py, whatif.py, preprocessing.py, and project.py.
 The file interface.py contains the code for the GUI (you may use any other GUI development toolkit as long as it is compatible with Python).
 
 The preprocessing.py file contains any code for reading inputs and any preprocessing necessary to make your algorithm work.
 
 The whatif.py contains code for generating the modified SQL and corresponding AQP.
 
-Lastly, the project.py is the main file that invokes all the necessary procedures from these three files. 
+Lastly, the project.py is the main file that invokes all the necessary procedures from these three files.
 
-Note that we shall be running the project.py file (either from command prompt or using the Pycharm IDE) to execute the software. 
+Note that we shall be running the project.py file (either from command prompt or using the Pycharm IDE) to execute the software.
 
 Make sure your code follows good coding practice: sufficient comments, proper variable/function naming,
 etc. We will execute the software to check its correctness using different query sets and dataset to check for the generality of the solution. We will also check quality of algorithm design w.r.t processing of the query plans and what-if questions.
 
 ## Flow
+
 Project.py -> Interface.py
 
 If have TPC-H database, can load default sql queries from the database
 
 Else, can input custom sql queries
-
-
-
 
 ## Creating TPC-H database in PostgreSQL
 
@@ -53,6 +52,8 @@ docker compose create
 docker compose start
 ```
 
+After starting the docker environment, connect the server to pgadmin and create a new database called **TPC-H**.
+
 To create the tables in postgresql, run the following commands:
 
 ```bash
@@ -60,6 +61,7 @@ python create_tables.py
 ```
 
 Use the below command to check if pg_load_hints is loaded:
+
 ```bash
 SHOW shared_preload_libraries;
 ```
@@ -114,14 +116,4 @@ Testing Command for whatif
 
 ```bash
 pytest --cov=whatif --cov-report=term --cov-report=xml:coverage.xml
-```
-
-
-For new runs,
-```bash
-docker compose create
-```
-afterwards,
-```bash
-docker compose start
 ```
