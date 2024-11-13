@@ -117,3 +117,6 @@ Testing Command for whatif
 ```bash
 pytest --cov=whatif --cov-report=term --cov-report=xml:coverage.xml
 ```
+
+References:
+pg_hint_plan: <https://github.com/ossc-db/pg_hint_plan>
