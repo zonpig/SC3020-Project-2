@@ -63,7 +63,7 @@ class Database:
 
 ## Note
 
-To install pygraphviz on **Mac**, run the following commands:
+To install pygraphviz on mac, run the following commands:
 
 ```bash
 brew install graphviz
@@ -76,7 +76,7 @@ pip3 install \
 ```
 
 
-To install graphviz on **Windows**, do the following steps:
+To install pygraphviz on windows, do the following steps:
 
 1. Go to the website `https://www.graphviz.org/download/` and download the 64-bit EXE installer for Windows.
 2. Add Graphviz to PATH
