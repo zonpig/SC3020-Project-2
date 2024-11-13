@@ -2,16 +2,16 @@
 
 For Scanning:
 Specific
-What happens if I change the Sequential scan of table A to an Index Scan?
-What happens if I change the Sequential scan of table A to a BitMap Scan?
+What happens if I replace Sequential Scan with an Index Scan on table A?
+What happens if I replace Sequential Scan with a BitMap Scan on table A?
 What happens if I prevent the use of Sequential Scan for table A?
 
-What happens if I change the Index Scan of table A to a Sequential Scan?
-What happens if I change the Index Scan of table A to a BitMap Scan?
+What happens if I replace Index Scan with a Sequential Scan on table A?
+What happens if I replace Index Scan with a BitMap Scan on table A?
 What happens if I prevent the use of Index Scan for table A?
 
-What happens if I change the BitMap Scan of table A to a Sequential Scan?
-What happens if I change the BitMap Scan of table A to an Index Scan?
+What happens if I replace BitMap Scan with a Sequential Scan on table A?
+What happens if I replace BitMap Scan with an Index Scan on table A?
 What happens if I prevent the use of BitMap Scan for table A?
 
 General (Use SQL Planner)
@@ -21,16 +21,16 @@ What happens if I don't use BitMap Scan at all?
 
 For Joins:
 Specific
-What happens if I change the Nested Loop Join of table A and B to a Hash Join?
-What happens if I change the Nested Loop Join of table A and B to a Merge Join?
+What happens if I change Nested Loop Join to a Hash Join for table A and B?
+What happens if I change Nested Loop Join to a Merge Join for table A and B?
 What happens if I prevent the use of Nested Loop Join for table A and B?
 
-What happens if I change the Hash Join of table A and B to a Nested Loop Join?
-What happens if I change the Hash Join of table A and B to a Merge Join?
+What happens if I change Hash Join to a Nested Loop Join for table A and B?
+What happens if I change Hash Join to a Merge Join for table A and B?
 What happens if I prevent the use of Hash Join for table A and B?
 
-What happens if I change the Merge Join of table A and B to a Nested Loop Join?
-What happens if I change the Merge Join of table A and B to a Hash Join?
+What happens if I change Merge Join to a Nested Loop Join for table A and B?
+What happens if I change Merge Join to a Hash Join for table A and B?
 What happens if I prevent the use of Merge Join for table A and B?
 
 General (Use SQL Planner)
