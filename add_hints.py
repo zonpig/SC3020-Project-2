@@ -1,6 +1,8 @@
 import re
 from collections import deque
-
+import logging
+import json
+import time
 from preprocessing import (
     Database,
 )
@@ -28,26 +30,34 @@ def adding_hints_to_original_query(sql_query):
 
         print(qep)
 
-        # logging
-        # logging.basicConfig(
-        #     filename="app.log",
-        #     filemode="w",
-        #     format="%(name)s - %(levelname)s - %(message)s",
-        # )
-        # logging.warning("This will get logged to a file")
-        # logging.warning(f"Plan : {qep}")
+        logging
+        logging.basicConfig(
+            filename="app.log",
+            filemode="w",
+            format="%(name)s - %(levelname)s - %(message)s",
+        )
+        logging.warning("This will get logged to a file")
+        logging.warning(f"Plan : {qep}")
 
-        # # save plan
-        # plan_json_name = "plan" + str(time.time()) + ".json"
-        # with open(plan_json_name, "w") as f:
-        #     json.dump(qep, f)
+        # save plan
+        plan_json_name = "plan" + str(time.time()) + ".json"
+        with open(plan_json_name, "w") as f:
+            json.dump(qep, f)
 
         # result["plan_data_path"] = plan_json_name
         result["hints"] = get_hints(qep)
         print(result["hints"])
 
         hints = " ".join(result["hints"])
-        modified_query = re.sub(r"/\*\+ .*? \*/", f"/* {hints} */", sql_query)
+
+        # Check if the query already contains "/*+ */"
+        if re.search(r"/\*\+ .*? \*/", sql_query):
+            # Replace existing hints
+            modified_query = re.sub(r"/\*\+ .*? \*/", f"/*+ {hints} */", sql_query)
+        else:
+            # Add hints at the beginning of the query if not present
+            modified_query = f"/*+ {hints} */ {sql_query}"
+
         print("Query with Hints: ")
         print(modified_query)
 
@@ -157,8 +167,10 @@ def merge_join_hint(plan):
     return hint
 
 
-test_query = "/*+ NestLoop(customer nation) */ SELECT CUSTOMER.C_NAME, NATION.N_NAME FROM CUSTOMER, NATION WHERE CUSTOMER.C_NATIONKEY = NATION.N_NATIONKEY  AND CUSTOMER.C_ACCTBAL <= 5 AND NATION.N_NATIONKEY <= 5"
-test_query_2 = "/*+ NoSeqScan(nation) */ SELECT PS_PARTKEY, SUM(PS_SUPPLYCOST * PS_AVAILQTY) AS VALUE  FROM PARTSUPP, SUPPLIER, NATION WHERE PS_SUPPKEY = S_SUPPKEY  AND S_NATIONKEY = N_NATIONKEY AND N_NAME = 'SAUDI ARABIA'  GROUP BY PS_PARTKEY HAVING  SUM(PS_SUPPLYCOST * PS_AVAILQTY) > (SELECT SUM(PS_SUPPLYCOST * PS_AVAILQTY) * 0.0001000000  FROM PARTSUPP, SUPPLIER, NATION WHERE PS_SUPPKEY = S_SUPPKEY AND S_NATIONKEY = N_NATIONKEY AND N_NAME = 'SAUDI ARABIA') ORDER BY VALUE DESC LIMIT 1;"
+test_query = "SELECT CUSTOMER.C_NAME, NATION.N_NAME FROM CUSTOMER, NATION WHERE CUSTOMER.C_NATIONKEY = NATION.N_NATIONKEY  AND CUSTOMER.C_ACCTBAL <= 5 AND NATION.N_NATIONKEY <= 5"
+
+test_query_2 = "/*+ NestLoop(customer nation) */ SELECT CUSTOMER.C_NAME, NATION.N_NAME FROM CUSTOMER, NATION WHERE CUSTOMER.C_NATIONKEY = NATION.N_NATIONKEY  AND CUSTOMER.C_ACCTBAL <= 5 AND NATION.N_NATIONKEY <= 5"
+test_query_3 = "/*+ NoSeqScan(nation) */ SELECT PS_PARTKEY, SUM(PS_SUPPLYCOST * PS_AVAILQTY) AS VALUE  FROM PARTSUPP, SUPPLIER, NATION WHERE PS_SUPPKEY = S_SUPPKEY  AND S_NATIONKEY = N_NATIONKEY AND N_NAME = 'SAUDI ARABIA'  GROUP BY PS_PARTKEY HAVING  SUM(PS_SUPPLYCOST * PS_AVAILQTY) > (SELECT SUM(PS_SUPPLYCOST * PS_AVAILQTY) * 0.0001000000  FROM PARTSUPP, SUPPLIER, NATION WHERE PS_SUPPKEY = S_SUPPKEY AND S_NATIONKEY = N_NATIONKEY AND N_NAME = 'SAUDI ARABIA') ORDER BY VALUE DESC LIMIT 1;"
 
 hints, qep = adding_hints_to_original_query(test_query)
 
