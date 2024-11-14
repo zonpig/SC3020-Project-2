@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify
 import datetime
 
 server = Flask(__name__)
-app = Dash(__name__, server=server, external_stylesheets=[dbc.themes.LUX])
+app = Dash(__name__, server=server, external_stylesheets=[dbc.themes.LUX], suppress_callback_exceptions=True)
 
 logs = []
 eg1 = 'SELECT customer.c_name, nation.n_name FROM customer, nation WHERE customer.c_nationkey = nation.n_nationkey and customer.c_acctbal <= 5 and nation.n_nationkey <= 5'
@@ -64,7 +64,6 @@ app.layout = html.Div([
                             ],width=6),
                             dbc.Col([
                                 dbc.Card([
-                                    dbc.Button('Generate AQP (Callback)', id='generate-aqp-callback', style={'text-align': 'center'}),
                                     dbc.CardHeader(['Generate AQP'], class_name='border-primary fw-bold', style={'font-size': '18px', 'text-align': 'center'}),
                                     dbc.CardBody([
                                         dbc.Row([
@@ -213,13 +212,13 @@ def draw_graph(n1, children):
 
 # AQP generation callback
 @app.callback(
-    [Output('graph', 'srcDoc', allow_duplicate=True),
-     Output('natural-language', 'children', allow_duplicate=True),
-     Output('hit-block', 'children', allow_duplicate=True),
-     Output('read-block', 'children', allow_duplicate=True),
-     Output('total-cost', 'children', allow_duplicate=True),
-     Output('buffer-size', 'children', allow_duplicate=True)],
-    Input('generate-aqp-callback', 'n_clicks'),
+    # [Output('graph', 'srcDoc', allow_duplicate=True),
+    #  Output('natural-language', 'children', allow_duplicate=True),
+    #  Output('hit-block', 'children', allow_duplicate=True),
+    #  Output('read-block', 'children', allow_duplicate=True),
+    #  Output('total-cost', 'children', allow_duplicate=True),
+    #  Output('buffer-size', 'children', allow_duplicate=True)],
+    Input('generate-aqp-specific', 'n_clicks'),
     State('main-query-list', 'children'),
     prevent_initial_call=True
 )
@@ -247,12 +246,12 @@ def generate_aqp_specific(n_clicks, query_list):
         if 'error' in results:
             raise ValueError(results['error'])
             
-        data = results['data']
-        natural = convert_html_to_dash(data['additionalDetails']['naturalExplanation'])
-        custom_html = read_graph(data['imageUrl'])
-        hit, read, total, size = update_costs(data)
+        # data = results['data']
+        # natural = convert_html_to_dash(data['additionalDetails']['naturalExplanation'])
+        # custom_html = read_graph(data['imageUrl'])
+        # hit, read, total, size = update_costs(data)
         
-        return custom_html, natural, hit, read, total, size
+        # return custom_html, natural, hit, read, total, size
             
     except Exception as e:
         print(f"Error generating AQP: {str(e)}")
