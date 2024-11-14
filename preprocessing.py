@@ -109,7 +109,7 @@ def process_query(user_query, relations):
         logging.warning(f"Plan : {plan}")
 
         # save plan
-        plan_json_name = "plan" + str(time.time()) + ".json"
+        plan_json_name = "static/plan" + str(time.time()) + ".json"
         with open(plan_json_name, "w") as f:
             json.dump(plan, f)
 
