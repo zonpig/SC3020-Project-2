@@ -206,5 +206,13 @@ def draw_graph(n1, children):
                         return custom_html, natural, hit, read, total, size
     return '', '', '', '', '', ''
 
+# SERVER CALLS
+@server.route('/nodeclick', methods=['POST'])
+def receive_nodeclick():
+    # Fetch data
+    data = request.get_json()
+    print(data)
+    return 'weeee'
+
 if __name__ == '__main__':
     app.run_server(debug=True)
