@@ -155,7 +155,7 @@ def process_query(user_query, relations):
         # get block analysis for query
         result["block_analysis"] = get_block_analysis(user_query, relations, connection)
         # get hints for query
-        result["hints"] = get_hints(user_query)
+        result["hints"] = get_hints(plan)
         hints = " ".join(result["hints"])
         # Check if the query already contains "/*+ */"
         if re.search(r"/\*\+ .*? \*/", user_query):
