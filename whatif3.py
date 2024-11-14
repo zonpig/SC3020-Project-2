@@ -1,13 +1,3 @@
-from typing import Dict, Tuple, Any
-import time
-import json
-from preprocessing import (
-    Database,
-    get_plan_summary,
-    get_natural_explanation,
-)
-from psycopg2 import ProgrammingError
-from typing import Dict, Tuple, Any
 import re
 
 question_to_planner_option = {
