@@ -326,6 +326,18 @@ def visualize_query_plan(plan):
                         what_if: selectedOption
                     }});
                     
+                    fetch('/nodeclick', {{
+                        method: 'POST',
+                        headers: {{
+                            'Content-Type': 'application/json'
+                        }},
+                        body: JSON.stringify({{
+                            node_type: selectedNode,
+                            node_id: selectedNodeId,
+                            what_if: selectedOption
+                        }})
+                    }});
+                    
                     closePopup();
                 }}
             }}

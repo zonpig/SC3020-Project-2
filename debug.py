@@ -1,10 +1,14 @@
 from dash import Dash, dcc, html, Input, Output, State, MATCH, ALL, ctx, callback_context
+import dash
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import re
+
+import requests
 from helper import *
 
 from flask import Flask, request, jsonify
+import datetime
 
 server = Flask(__name__)
 app = Dash(__name__, server=server, external_stylesheets=[dbc.themes.LUX])
@@ -60,6 +64,7 @@ app.layout = html.Div([
                             ],width=6),
                             dbc.Col([
                                 dbc.Card([
+                                    dbc.Button('Generate AQP (Callback)', id='generate-aqp-callback', style={'text-align': 'center'}),
                                     dbc.CardHeader(['Generate AQP'], class_name='border-primary fw-bold', style={'font-size': '18px', 'text-align': 'center'}),
                                     dbc.CardBody([
                                         dbc.Row([
@@ -116,11 +121,11 @@ app.layout = html.Div([
 tab_general =  dbc.InputGroup([
                     dcc.Dropdown(['No Sequential Scan', 'No Index Scan', 'No Bitmap Scan'],style={'width': "100%"},multi=True),
                     dcc.Dropdown(['No Nested Loop Join', 'No Hash Join', 'No Merge join'],style={'width': "100%"},multi=True),
-                    dbc.Button('Generate AQP', id='generate-aqp', style={'text-align': 'center'}),
+                    dbc.Button('Generate AQP', id='generate-aqp-general', style={'text-align': 'center'}),
                 ])
 
 tab_specific =  dbc.InputGroup([
-                    dbc.Button('Generate AQP', id='generate-aqp', style={'text-align': 'center'}),
+                    dbc.Button('Generate AQP', id='generate-aqp-specific', style={'text-align': 'center'}),
                 ])
 
 # Callback to add or delete query list
@@ -206,13 +211,83 @@ def draw_graph(n1, children):
                         return custom_html, natural, hit, read, total, size
     return '', '', '', '', '', ''
 
+# AQP generation callback
+@app.callback(
+    [Output('graph', 'srcDoc', allow_duplicate=True),
+     Output('natural-language', 'children', allow_duplicate=True),
+     Output('hit-block', 'children', allow_duplicate=True),
+     Output('read-block', 'children', allow_duplicate=True),
+     Output('total-cost', 'children', allow_duplicate=True),
+     Output('buffer-size', 'children', allow_duplicate=True)],
+    Input('generate-aqp-callback', 'n_clicks'),
+    State('main-query-list', 'children'),
+    prevent_initial_call=True
+)
+def generate_aqp_specific(n_clicks, query_list):
+    if not n_clicks:
+        return '', '', '', '', '', ''
+        
+    try:
+        current_query = next((child['props']['children'][0]['props']['value'] 
+                            for child in query_list 
+                            if child['props']['children'][0]['props'].get('value')), None)
+        
+        if not current_query:
+            raise ValueError("No query found")
+            
+        n_query = re.sub(r'\n|\t', " ", current_query).strip()
+        tables_extracted = extract_tables_from_query(n_query.upper())
+            
+        selections_response = requests.get('http://localhost:8050/get-selections')
+        selections_data = selections_response.json()
+        print(selections_data)
+        response = run_query(current_query, tables_extracted)
+        
+        results = response.get_json()
+        if 'error' in results:
+            raise ValueError(results['error'])
+            
+        data = results['data']
+        natural = convert_html_to_dash(data['additionalDetails']['naturalExplanation'])
+        custom_html = read_graph(data['imageUrl'])
+        hit, read, total, size = update_costs(data)
+        
+        return custom_html, natural, hit, read, total, size
+            
+    except Exception as e:
+        print(f"Error generating AQP: {str(e)}")
+        return dash.no_update
+    
 # SERVER CALLS
+selections = []
 @server.route('/nodeclick', methods=['POST'])
 def receive_nodeclick():
-    # Fetch data
     data = request.get_json()
-    print(data)
-    return 'weeee'
+    current_selection = {
+        'timestamp': datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
+        'node_type': data.get('type'),
+        'node_id': data.get('node_id'),
+        'what_if': data.get('what_if') 
+    }
+    
+    # Update or append selection
+    node_index = next((i for i, s in enumerate(selections) 
+                      if s['node_id'] == current_selection['node_id']), -1)
+    
+    if node_index >= 0:
+        selections[node_index] = current_selection
+    else:
+        selections.append(current_selection)
+        
+    print(selections)
+    return jsonify({'status': 'success'})
+
+@server.route('/get-selections', methods=['GET'])
+def get_selections():
+    global selections
+    response = jsonify(selections)
+    selections = []
+    return response
 
 if __name__ == '__main__':
     app.run_server(debug=True)
