@@ -3,8 +3,13 @@ import re
 
 from flask import Flask, jsonify, render_template, request, url_for
 
-from interactive_interface import visualize_query_plan
-from preprocessing import get_relation_block, process_query
+from interface import visualize_query_plan
+from preprocessing import (
+    get_relation_block,
+    process_query,
+    get_postgres_schemas,
+    Database,
+)
 
 app = Flask(__name__)
 
@@ -63,6 +68,7 @@ def run_query():
     # print(result)
     return jsonify(result)
 
+
 @app.route("/api/runAlternateQuery", methods=["POST"])
 def run_alternate_query():
     print("run_whatif")
@@ -101,6 +107,7 @@ def run_alternate_query():
     # print(result)
     return jsonify(result)
 
+
 @app.route("/api/explore-block", methods=["POST"])
 def explore_block():
     # Obtain specific fields from POST request
@@ -129,6 +136,7 @@ def generate_query_plan():
     image_url = url_for("static", filename=url)
     return jsonify({"imageUrl": image_url})
 
+
 @app.route("/api/generate-alternative-query-plan", methods=["POST"])
 def process_whatif_query():
     plan = request.json["plan"]
@@ -137,6 +145,29 @@ def process_whatif_query():
     # Assuming the image is saved in a static directory
     image_url = url_for("static", filename=url)
     return jsonify({"imageUrl": image_url})
+
+
+@app.route("/api/get_schemas")
+def get_schemas():
+    schemas = get_postgres_schemas()
+    return jsonify(schemas)
+
+
+@app.route("/api/set_database", methods=["GET"])
+def set_database():
+    try:
+        new_database = request.args.get("database")
+        if new_database:
+            # Update the database in the Database class
+            Database.set_database(new_database)
+            return jsonify(
+                {"message": f"Database updated to {new_database} successfully."}
+            )
+        else:
+            return jsonify({"error": "No database provided"}), 400
+    except Exception as e:
+        print(f"Error updating database: {e}")
+        return jsonify({"error": "Failed to update database"}), 500
 
 
 if __name__ == "__main__":

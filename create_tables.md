@@ -97,7 +97,7 @@ ALTER TABLE public.supplier
 ```sql
 CREATE TABLE public.partsupp
 (
-    ps_partkey integer NOT NULL, ps_suppkey integer NOT NULL, ps_availaty integer NOT NULL, ps_supplycost numeric(15,2) NOT NULL,
+    ps_partkey integer NOT NULL, ps_suppkey integer NOT NULL, ps_availqty integer NOT NULL, ps_supplycost numeric(15,2) NOT NULL,
     ps_comment character varying(199) COLLATE pg_catalog."default" NOT NULL,
     CONSTRAINT partsupp_pkey PRIMARY KEY (ps_partkey, ps_suppkey),
     CONSTRAINT fk_ps_suppkey_partkey FOREIGN KEY (ps_partkey)
