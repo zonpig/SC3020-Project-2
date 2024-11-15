@@ -1,15 +1,17 @@
 import networkx as nx
 import plotly.graph_objects as go
-import json
 from networkx.drawing.nx_agraph import graphviz_layout
 import datetime
+
 
 class AlternativeQueryPlan:
     def __init__(self):
         self.selected_node = None
         self.selected_option = None
 
+
 alt = AlternativeQueryPlan()
+
 
 def build_graph(G, node, parent=None):
     node_id = f"{node['Node Type']}_{G.number_of_nodes()}"
@@ -28,7 +30,7 @@ def build_graph(G, node, parent=None):
 
     label = f"{node['Node Type']}<br>Cost: {total_cost}<br>Buffer: {buffer}<br>Rows: {row_size}"
     G.add_node(node_id, label=label, type=node["Node Type"], data=node, changed=changed)
-    
+
     if parent:
         G.add_edge(parent, node_id)
 
@@ -36,13 +38,14 @@ def build_graph(G, node, parent=None):
         for child in node["Plans"]:
             build_graph(G, child, node_id)
 
+
 def visualize_query_plan(plan):
     # Create a global alt instance
     global alt
-    
+
     G = nx.DiGraph()
     build_graph(G, plan)
-    
+
     pos = graphviz_layout(G, prog="dot")
 
     edge_x = []
@@ -54,10 +57,11 @@ def visualize_query_plan(plan):
         edge_y.extend([y0, y1, None])
 
     edge_trace = go.Scatter(
-        x=edge_x, y=edge_y,
-        line=dict(width=1, color='#888'),
-        hoverinfo='none',
-        mode='lines'
+        x=edge_x,
+        y=edge_y,
+        line=dict(width=1, color="#888"),
+        hoverinfo="none",
+        mode="lines",
     )
 
     node_x = []
@@ -65,12 +69,12 @@ def visualize_query_plan(plan):
     node_details = []
     node_labels = []
     node_colors = []
-    
+
     for node in G.nodes():
         x, y = pos[node]
         node_x.append(x)
         node_y.append(y)
-        
+
         details = G.nodes[node]["data"]
         buffer_sum = sum(
             details.get(key, 0)
@@ -82,7 +86,7 @@ def visualize_query_plan(plan):
             ]
         )
         node_type = details.get("Node Type", "N/A")
-        
+
         # Set what if options based on node type
         if node_type in ["Hash Join", "Merge Join", "Nested Loop"]:
             options = ["Hash Join", "Merge Join", "Nested Loop"]
@@ -92,51 +96,52 @@ def visualize_query_plan(plan):
             options = []
 
         node_info = {
-            "type": details.get('Node Type', 'N/A'),
-            "cost": details.get('Total Cost', 'N/A'),
-            "rows": details.get('Actual Rows', 'N/A'),
+            "type": details.get("Node Type", "N/A"),
+            "cost": details.get("Total Cost", "N/A"),
+            "rows": details.get("Actual Rows", "N/A"),
             "buffer": buffer_sum,
             "options": options,
             "changed": G.nodes[node]["changed"],
-            "node_id": node
+            "node_id": node,
         }
         node_details.append(node_info)
         node_labels.append(G.nodes[node]["label"])
 
         # Set node color based on the "changed" field
         if G.nodes[node]["changed"]:
-            node_colors.append('red')
+            node_colors.append("red")
         else:
-            node_colors.append('lightblue')
+            node_colors.append("lightblue")
 
     node_trace = go.Scatter(
-        x=node_x, y=node_y,
-        mode='markers+text',
+        x=node_x,
+        y=node_y,
+        mode="markers+text",
         marker=dict(
             size=20,
             color=node_colors,
             line_width=2,
-            symbol='circle',
+            symbol="circle",
         ),
         text=node_labels,
-        hoverinfo='text',
+        hoverinfo="text",
         textposition="bottom center",
-        customdata=node_details
+        customdata=node_details,
     )
 
     fig = go.Figure(data=[edge_trace, node_trace])
-    
+
     fig.update_layout(
         title="Query Plan Visualization<br>Click node to see what-if options",
         showlegend=False,
-        hovermode='closest',
+        hovermode="closest",
         margin=dict(b=20, l=5, r=5, t=40),
         xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
     )
 
     plot_json = fig.to_json()
-    
+
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -356,11 +361,11 @@ def visualize_query_plan(plan):
     filename = f"static/query_plan_visualization_{timestamp}.html"
 
     # Save the HTML content to a file with the timestamped filename
-    with open(filename, "w", encoding='utf-8') as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(html_content)
 
     print(f"HTML file saved as {filename}")
-    #fig.show()
-    #return alt
+    # fig.show()
+    # return alt
     return filename
-    #return fig
+    # return fig
