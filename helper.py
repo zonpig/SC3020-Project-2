@@ -1,24 +1,25 @@
 import json
 import re
-from preprocessing import get_relation_block, process_query
+from preprocessing import process_query
 from interactive_interface import visualize_query_plan
 from flask import jsonify
 from bs4 import BeautifulSoup
 from dash import html
 
+
 def convert_html_to_dash(html_input):
     def parse_html(html_text):
-        soup = BeautifulSoup(html_text, 'html.parser')
+        soup = BeautifulSoup(html_text, "html.parser")
         components = []
-        
+
         for element in soup:
             if isinstance(element, str):
                 components.append(element)
-            elif element.name == 'b':
+            elif element.name == "b":
                 components.append(html.B(element.text))
             else:
                 components.append(element.text)
-        
+
         return components
 
     if isinstance(html_input, list):
@@ -29,6 +30,7 @@ def convert_html_to_dash(html_input):
         return result
     else:
         return parse_html(html_input)
+
 
 def extract_tables_from_query(sql_query: str):
     # List of valid table names in uppercase
@@ -66,16 +68,21 @@ def extract_tables_from_query(sql_query: str):
 
     return table_aliases
 
+
 def run_query(query, relations):
     if relations and query:
-        query = re.sub(r'\s+', " ", query)
+        query = re.sub(r"\s+", " ", query)
 
         result = {"query": query}
 
-        has_error, response = process_query(query, relations)  # Define this function based on your needs
+        has_error, response = process_query(
+            query, relations
+        )  # Define this function based on your needs
         if has_error:
             result["error"] = response["msg"]
         else:
+            specific_what_if = response["specific_what_if"]
+            general_what_if = response["general_what_if"]
             json_path = response["plan_data_path"]
             with open(json_path, "r") as json_file:
                 plan = json.load(json_file)
@@ -96,18 +103,20 @@ def run_query(query, relations):
                 },
             }
 
-        return jsonify(result)
+        return specific_what_if, general_what_if, jsonify(result)
     return jsonify({"error": "No query provided"})
 
+
 def read_graph(target):
-    with open(target, 'r') as file:
+    with open(target, "r") as file:
         custom_html = file.read()
     return custom_html
 
+
 def update_costs(data):
-    hit = data['additionalDetails']['totalBlocks']['hit_blocks']
-    read = data['additionalDetails']['totalBlocks']['read_blocks']
+    hit = data["additionalDetails"]["totalBlocks"]["hit_blocks"]
+    read = data["additionalDetails"]["totalBlocks"]["read_blocks"]
     size = hit + read
-    total = data['additionalDetails']['totalCost']
-    
+    total = data["additionalDetails"]["totalCost"]
+
     return hit, read, total, size
