@@ -82,7 +82,6 @@ tab_specific = html.Div(
             placeholder="Select specific what-if scenario...",
             style={"width": "100%"},
         ),
-        dbc.ListGroup([], id="specific-whatif-list"),
     ]
 )
 
@@ -332,12 +331,12 @@ app.layout = html.Div(
                                                                                                     label="Specific What Ifs",
                                                                                                     id="tab-specific",
                                                                                                 ),
-                                                                                                # dcc.Tab(
-                                                                                                #     tab_specific_qep,
-                                                                                                #     value="gen-qep",
-                                                                                                #     label="QEP",
-                                                                                                #     id="tab-qep",
-                                                                                                # ),
+                                                                                                dcc.Tab(
+                                                                                                    tab_specific_qep,
+                                                                                                    value="gen-qep",
+                                                                                                    label="QEP",
+                                                                                                    id="tab-qep",
+                                                                                                ),
                                                                                                 dcc.Tab(
                                                                                                     tab_aqp_spec,
                                                                                                     value="gen-aqp-spec",
@@ -932,33 +931,33 @@ def generate_aqp_specific(tab, children):
                         custom_html = read_graph(imageurl)
                         hit, read, total, size = update_costs(data)
                         return custom_html, natural, hit, read, total, size
-        # else:
-        #     print(f"Starting AQP generation with options: {selections}")
-        #     print(f"STARTING ALTERNATE RUN {queryid}")
-        #     for i, child in enumerate(children):
-        #         if child["props"]["id"]["index"] == queryid:
-        #             query = child["props"]["children"][0]["props"]["value"]
-        #             n_query = re.sub(r"\n|\t", " ", query).strip()
-        #             print(f"The query is: {n_query.upper()}")
-        #             tables_extracted = extract_tables_from_query(n_query.upper())
-        #             print(f"Selections: {selections}")
-        #             response = what_if(
-        #                 query_with_hints_global, tables_extracted, selections
-        #             )
-        #             results = response.get_json()  # Extract JSON data from the response
-        #             if "error" in results:
-        #                 print(f"Error: {results['error']}")
-        #             else:
-        #                 print(f'Image URL: {results["data"]["imageUrl"]}')
-        #                 data = results["data"]
-        #                 natural_explanation = data["additionalDetails"][
-        #                     "naturalExplanation"
-        #                 ]
-        #                 natural = convert_html_to_dash(natural_explanation)
-        #                 imageurl = data["imageUrl"]
-        #                 custom_html = read_graph(imageurl)
-        #                 hit, read, total, size = update_costs(data)
-        #                 return custom_html, natural, hit, read, total, size
+        else:
+            print(f"Starting AQP generation with options: {selections}")
+            print(f"STARTING ALTERNATE RUN {queryid}")
+            for i, child in enumerate(children):
+                if child["props"]["id"]["index"] == queryid:
+                    query = child["props"]["children"][0]["props"]["value"]
+                    n_query = re.sub(r"\n|\t", " ", query).strip()
+                    print(f"The query is: {n_query.upper()}")
+                    tables_extracted = extract_tables_from_query(n_query.upper())
+                    print(f"Selections: {selections}")
+                    response = what_if(
+                        query_with_hints_global, tables_extracted, selections
+                    )
+                    results = response.get_json()  # Extract JSON data from the response
+                    if "error" in results:
+                        print(f"Error: {results['error']}")
+                    else:
+                        print(f'Image URL: {results["data"]["imageUrl"]}')
+                        data = results["data"]
+                        natural_explanation = data["additionalDetails"][
+                            "naturalExplanation"
+                        ]
+                        natural = convert_html_to_dash(natural_explanation)
+                        imageurl = data["imageUrl"]
+                        custom_html = read_graph(imageurl)
+                        hit, read, total, size = update_costs(data)
+                        return custom_html, natural, hit, read, total, size
     return "", "", "", "", "", ""
 
 

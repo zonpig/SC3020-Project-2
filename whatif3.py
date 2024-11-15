@@ -105,27 +105,43 @@ change_scan_mapping = {
 }
 
 
-join_map_to_plan = {
+scan_join_map_to_plan = {
+    "Seq Scan": "SeqScan",
+    "Index Scan": "IndexScan",
+    "Bitmap Heap Scan": "BitmapScan",
     "Hash Join": "HashJoin",
     "Merge Join": "MergeJoin",
     "Nested Loop": "NestedLoop",
 }
 
-scan_map_to_plan = {
-    "Seq Scan": "SeqScan",
-    "Index Scan": "IndexScan",
-    "Bitmap Heap Scan": "BitmapScan",
-}
-
 
 def what_if(query, relations, questions):
-    # print("questions", questions)
-    # # Specific Scenario (Tree)
-    # if isinstance(questions[0], dict):
-    #     print("
+    print("query", query)
+    print("questions", questions)
+    # Specific Scenario (Tree)
+    if isinstance(questions[0], dict):
+        changed_hints = {}
+        for question in questions:
+            change = scan_join_map_to_plan[question["what_if"]]
+            changed_hints[question["hint"]] = re.sub(
+                r"\b\w+(?=\()", change, question["hint"]
+            )
+        print(changed_hints)
+        # Extract hints between /*+ and */
+        hints_array = re.findall(r"\b\w+\(.*?\)", query)
+
+        # Step 3: Replace occurrences of keys in hints_array with their values
+        updated_hints_array = [
+            changed_hints[hint] if hint in changed_hints else hint
+            for hint in hints_array
+        ]
+        updated_hints_block = "/*+ " + " ".join(updated_hints_array) + " */"
+        modified_query = re.sub(
+            r"/\*\+.*?\*/", updated_hints_block, query, flags=re.DOTALL
+        )
 
     # General Scenario
-    if questions[0] in question_to_planner_option:
+    elif questions[0] in question_to_planner_option:
         planner_option = []
         reset_statements = []
         for question in questions:
