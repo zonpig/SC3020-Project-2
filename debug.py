@@ -33,9 +33,26 @@ eg1 = "SELECT customer.c_name, nation.n_name FROM customer, nation WHERE custome
 eg2 = "select sum(l_extendedprice * l_discount) as revenue from lineitem where l_shipdate >= date '1995-01-01' and l_shipdate < date '1995-01-01' + interval '1' year and l_discount between 0.09 - 0.01 and 0.09 + 0.01 and l_quantity < 24;"
 
 # Tab layouts
-tab_aqp_gen = html.Iframe(
-    style={"width": "100%", "height": "800px"},
-    id="graph-alt-gen",
+tab_aqp_gen = html.Div(
+    [
+        dbc.Row(
+            [
+                dbc.Card(
+                    [
+                        dbc.CardBody(children="whats up gang", id="general-query") # placeholder children value. children should be added dynamically on aqp creation
+                    ]
+                )
+            ]
+        ),
+        dbc.Row(
+            [
+                html.Iframe(
+                    style={"width": "100%", "height": "800px"},
+                    id="graph-alt-gen",
+                )
+            ]
+        )
+    ]
 )
 
 tab_general = dbc.InputGroup(
@@ -55,9 +72,26 @@ tab_general = dbc.InputGroup(
 
 tab_specific = dbc.ListGroup([], id="specific-whatif-list")
 
-tab_aqp_spec = html.Iframe(
-    style={"width": "100%", "height": "800px"},
-    id="graph-alt",
+tab_aqp_spec = html.Div(
+    [
+        dbc.Row(
+            [
+                dbc.Card(
+                    [
+                        dbc.CardBody(children="whats up gang", id="specific-query") # placeholder children value. children should be added dynamically on aqp creation
+                    ]
+                )
+            ]
+        ),
+        dbc.Row(
+            [
+                html.Iframe(
+                    style={"width": "100%", "height": "800px"},
+                    id="graph-alt",
+                )
+            ]
+        )
+    ]
 )
 
 app.layout = html.Div(
@@ -203,26 +237,39 @@ app.layout = html.Div(
                                                     [
                                                         dbc.Col(
                                                             [
-                                                                dbc.Card(
+                                                                dbc.Row(
                                                                     [
-                                                                        dbc.CardBody(
+                                                                        dbc.Card(
                                                                             [
-                                                                                html.Iframe(
-                                                                                    style={
-                                                                                        "width": "100%",
-                                                                                        "height": "800px",
-                                                                                        "position": "relative",
-                                                                                        "top": "65px",
-                                                                                    },
-                                                                                    id="graph",
-                                                                                ),
-                                                                            ]
+                                                                                dbc.CardBody(children="IMPRESSING THE BRUZZ", id="original-query") # placeholder children value. children should be added dynamically on aqp creation
+                                                                            ],
                                                                         ),
                                                                     ],
-                                                                    style={
-                                                                        "height": "900px"
-                                                                    },
-                                                                    class_name="border-primary",
+                                                                ),
+                                                                dbc.Row(
+                                                                    [
+                                                                        dbc.Card(
+                                                                            [
+                                                                                dbc.CardBody(
+                                                                                    [
+                                                                                        html.Iframe(
+                                                                                            style={
+                                                                                                "width": "100%",
+                                                                                                "height": "800px",
+                                                                                                "position": "relative",
+                                                                                                "top": "65px",
+                                                                                            },
+                                                                                            id="graph",
+                                                                                        ),
+                                                                                    ]
+                                                                                ),
+                                                                            ],
+                                                                            style={
+                                                                                "height": "900px"
+                                                                            },
+                                                                            class_name="border-primary",
+                                                                        ),
+                                                                    ],
                                                                 ),
                                                             ],
                                                             width=6,
@@ -284,7 +331,7 @@ app.layout = html.Div(
                                                                         ),
                                                                     ],
                                                                     style={
-                                                                        "height": "900px"
+                                                                        "height": "960px"
                                                                     },
                                                                     class_name="border-primary",
                                                                 ),
