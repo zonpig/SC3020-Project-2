@@ -33,6 +33,11 @@ eg1 = "SELECT customer.c_name, nation.n_name FROM customer, nation WHERE custome
 eg2 = "select sum(l_extendedprice * l_discount) as revenue from lineitem where l_shipdate >= date '1995-01-01' and l_shipdate < date '1995-01-01' + interval '1' year and l_discount between 0.09 - 0.01 and 0.09 + 0.01 and l_quantity < 24;"
 
 # Tab layouts
+tab_aqp_gen = html.Iframe(
+    style={"width": "100%", "height": "800px"},
+    id="graph-alt-gen",
+)
+
 tab_general = dbc.InputGroup(
     [
         dcc.Dropdown(
@@ -50,7 +55,7 @@ tab_general = dbc.InputGroup(
 
 tab_specific = dbc.ListGroup([], id="specific-whatif-list")
 
-tab_aqp = html.Iframe(
+tab_aqp_spec = html.Iframe(
     style={"width": "100%", "height": "800px"},
     id="graph-alt",
 )
@@ -233,6 +238,13 @@ app.layout = html.Div(
                                                                                         dcc.Tabs(
                                                                                             [
                                                                                                 dcc.Tab(
+                                                                                                    tab_aqp_gen,
+                                                                                                    value="gen-aqp-gen",
+                                                                                                    label="Generate General WhatIf AQP",
+                                                                                                    id="tab-aqp-gen",
+                                                                                                    className="bg-primary text-white",
+                                                                                                ),
+                                                                                                dcc.Tab(
                                                                                                     tab_general,
                                                                                                     value="gen-gen",
                                                                                                     label="General What Ifs",
@@ -245,10 +257,10 @@ app.layout = html.Div(
                                                                                                     id="tab-specific",
                                                                                                 ),
                                                                                                 dcc.Tab(
-                                                                                                    tab_aqp,
-                                                                                                    value="gen-aqp",
-                                                                                                    label="Generate AQP",
-                                                                                                    id="tab-aqp",
+                                                                                                    tab_aqp_spec,
+                                                                                                    value="gen-aqp-spec",
+                                                                                                    label="Generate Specific WhatIf AQP",
+                                                                                                    id="tab-aqp-spec",
                                                                                                     className="bg-primary text-white",
                                                                                                 ),
                                                                                             ],
@@ -742,9 +754,10 @@ def update_card(n_intervals, n1, children):
     State("main-query-list", "children"),
     prevent_initial_call=True,
 )
-def generate_aqp_specific(tab, children):
-    if tab == "gen-aqp":
-        global queryid
+def generate_aqp(tab, children):
+    global queryid
+# Generating AQP for specific    
+    if tab == "gen-aqp-spec":
         print(f"\nSTARTING ALTERNATE RUN {queryid}")
         for i, child in enumerate(children):
             if child["props"]["id"]["index"] == queryid:
@@ -768,8 +781,34 @@ def generate_aqp_specific(tab, children):
                     custom_html = read_graph(imageurl)
                     hit, read, total, size = update_costs(data)
                     return custom_html, natural, hit, read, total, size
-    return "", "", "", "", "", ""
 
+# Generating AQP for general
+    elif tab == "gen-aqp-gen":
+        print(f"\nSTARTING ALTERNATE RUN {queryid}")
+        for i, child in enumerate(children):
+            if child["props"]["id"]["index"] == queryid:
+                query = child["props"]["children"][0]["props"]["value"]
+                n_query = re.sub(r"\n|\t", " ", query).strip()
+                print(f"the query is : {n_query.upper()}")
+                tables_extracted = extract_tables_from_query(n_query.upper())
+                response = run_query(n_query, tables_extracted)
+                results = response.get_json()  # Extract JSON data from the response
+                if "error" in results:
+                    print(f"Error: {results["error"]}")
+                else:
+                    print(f"Image URL: {results["data"]["imageUrl"]}")
+                    data = results["data"]
+                    natural_explanation = data["additionalDetails"][
+                        "naturalExplanation"
+                    ]
+                    natural = natural_explanation
+                    natural = convert_html_to_dash(natural)
+                    imageurl = data["imageUrl"]
+                    custom_html = read_graph(imageurl)
+                    hit, read, total, size = update_costs(data)
+                    return custom_html, natural, hit, read, total, size
+
+    return "", "", "", "", "", ""
 
 """
 def generate_aqp_specific(n1, n2, query_list):
