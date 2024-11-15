@@ -1,4 +1,8 @@
 import re
+from preprocessing import process_query
+from interactive_interface import visualize_query_plan
+from flask import jsonify
+import json
 
 question_to_planner_option = {
     "What happens if I don't use BitMap Scan at all?": "SET enable_bitmapscan to off;",  # Actually Bitmap
@@ -100,7 +104,7 @@ change_scan_mapping = {
 }
 
 
-def what_if(query, qep, questions):
+def what_if(query, relations, questions):
     # General Scenario
     if questions[0] in question_to_planner_option:
         planner_option = []
@@ -117,43 +121,76 @@ def what_if(query, qep, questions):
         reset_statements = " ".join(reset_statements)
         print(reset_statements)
 
-    # Specific Scenario (Tree)
+    else:
+        # Specific Scenario (Tree)
 
-    # Specific Scenario (Dropdown)
-    replacements = []
+        # Specific Scenario (Dropdown)
+        replacements = []
 
-    # Step 1: Identify necessary replacements based on questions
-    for question in questions:
-        for description, (old_hint, new_hint) in change_scan_mapping.items():
-            if description in question:
-                print(question)
-                print(description)
-                # Check if the question specifies a single table or a join (two tables)
-                table_match = re.search(r"for table (\w+)", question)
-                join_match = re.search(r"for tables (\w+) and (\w+)", question)
+        # Step 1: Identify necessary replacements based on questions
+        for question in questions:
+            for description, (old_hint, new_hint) in change_scan_mapping.items():
+                if description in question:
+                    print(question)
+                    print(description)
+                    # Check if the question specifies a single table or a join (two tables)
+                    table_match = re.search(r"for table (\w+)", question)
+                    join_match = re.search(r"for tables (\w+) and (\w+)", question)
 
-                if table_match:
-                    # Single table hint replacement
-                    table_name = table_match.group(1)
-                    replacements.append((old_hint, new_hint, table_name, None))
-                elif join_match:
-                    # Join hint replacement between two tables
-                    table1, table2 = join_match.groups()
-                    replacements.append((old_hint, new_hint, table1, table2))
+                    if table_match:
+                        # Single table hint replacement
+                        table_name = table_match.group(1)
+                        replacements.append((old_hint, new_hint, table_name, None))
+                    elif join_match:
+                        # Join hint replacement between two tables
+                        table1, table2 = join_match.groups()
+                        replacements.append((old_hint, new_hint, table1, table2))
+        print(replacements)
+        # Step 2: Apply replacements in one pass
+        for old_hint, new_hint, table1, table2 in replacements:
+            if table2 is None:
+                # Single-table scan replacement
+                modified_query = re.sub(
+                    rf"\b{old_hint}\({table1}\)", f"{new_hint}({table1})", query
+                )
+                print(modified_query)
+            else:
+                # Join replacement for specific table pairs
+                modified_query = re.sub(
+                    rf"\b{old_hint}\({table1} {table2}\)",
+                    f"{new_hint}({table1} {table2})",
+                    query,
+                )
 
-    # Step 2: Apply replacements in one pass
-    for old_hint, new_hint, table1, table2 in replacements:
-        if table2 is None:
-            # Single-table scan replacement
-            query = re.sub(rf"\b{old_hint}\({table1}\)", f"{new_hint}({table1})", query)
-        else:
-            # Join replacement for specific table pairs
-            query = re.sub(
-                rf"\b{old_hint}\({table1} {table2}\)",
-                f"{new_hint}({table1} {table2})",
-                query,
-            )
-    print(query)
+    result = {"query": modified_query}
+    print("test", modified_query)
+    has_error, response = process_query(
+        modified_query, relations
+    )  # Define this function based on your needs
+    if has_error:
+        result["error"] = response["msg"]
+    else:
+        json_path = response["plan_data_path"]
+        with open(json_path, "r") as json_file:
+            plan = json.load(json_file)
+        url = visualize_query_plan(plan)  # Define this function based on your needs
+        image_url = f"{url}"
+
+        result["data"] = {
+            "chartData": response["block_analysis"]["blocks_by_relation"],
+            "tableData": response["block_analysis"]["sql_response"],
+            "haveCtids": response["block_analysis"]["have_ctids"],
+            "isAggregation": response["block_analysis"]["is_aggregation"],
+            "imageUrl": image_url,
+            "additionalDetails": {
+                "naturalExplanation": response["natural_explain"],
+                "totalCost": response["summary_data"]["total_cost"],
+                "totalBlocks": response["summary_data"]["total_blocks"],
+                "totalNodes": response["summary_data"]["nodes_count"],
+            },
+        }
+
+    return jsonify(result)
 
     # try:
     #     connection = Database.get_connection()
@@ -163,11 +200,11 @@ def what_if(query, qep, questions):
 
 query = "/*+ SeqScan(nation) SeqScan(customer) HashJoin(customer nation) */ SELECT CUSTOMER.C_NAME, NATION.N_NAME FROM CUSTOMER, NATION WHERE CUSTOMER.C_NATIONKEY = NATION.N_NATIONKEY  AND CUSTOMER.C_ACCTBAL <= 5 AND NATION.N_NATIONKEY <= 5;"
 
-what_if(
-    query,
-    None,
-    [
-        "What happens if I prevent the use of Sequential Scan for table customer?",
-        "What happens if I prevent the use of Hash Join for tables customer and nation?",
-    ],
-)
+# what_if(
+#     query,
+#     {"nation":"nation", "customer":"customer"},",
+#     [
+#         "What happens if I prevent the use of Sequential Scan for table customer?",
+#         "What happens if I prevent the use of Hash Join for tables customer and nation?",
+#     ],
+# )

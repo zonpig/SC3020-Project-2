@@ -201,17 +201,24 @@ def get_block_analysis(user_query, relations, connection):
 
     a_relations = list(relations.keys())
 
+    # Extract hint plan if present
+    hint_plan = ""
+    if user_query.strip().startswith("/*+"):
+        end_hint = user_query.find("*/") + 2
+        hint_plan = user_query[:end_hint]
+        user_query = user_query[end_hint:].strip()
+
     if user_query.upper().count("FROM (") >= 1:
         print("Detect nested SELECT cases.")
         with connection.cursor() as cur:
             try:
-                cur.execute(user_query)
+                cur.execute(hint_plan + " " + user_query)
                 result = cur.fetchall()
             except ProgrammingError as e:
                 print(e)
                 cur.execute("ROLLBACK;")
                 return None
-        print(">>> " + user_query)
+        print(">>> " + hint_plan + " " + user_query)
         print(result)
         analysis["sql_response"] = {"col": None, "record": None, "result": result}
         analysis["have_ctids"] = False
@@ -223,7 +230,7 @@ def get_block_analysis(user_query, relations, connection):
 
     if is_group_query(user_query):
         from_pos = user_query.upper().find("FROM") - 1
-        ctid_user_query = "SELECT " + ctids[:-2]
+        ctid_user_query = hint_plan + " SELECT " + ctids[:-2]
         if "GROUP BY" in user_query.upper():
             group_pos = user_query.upper().find("GROUP BY") - 1
             ctid_user_query = ctid_user_query + user_query[from_pos:group_pos]
@@ -232,16 +239,16 @@ def get_block_analysis(user_query, relations, connection):
         analysis["is_aggregation"] = True
         columns = user_query[7:from_pos].split(", ")
     else:
-        ctid_user_query = "SELECT " + ctids + user_query[7:]
+        ctid_user_query = hint_plan + " SELECT " + ctids + user_query[7:]
         columns = [f"ctid_of_{relation}" for relation in a_relations] + ["record_data"]
 
-    # print(ctid_user_query)
+    print(ctid_user_query)
 
     with connection.cursor() as cur:
         try:
             cur.execute(ctid_user_query)
             ctid_result = cur.fetchall()
-            cur.execute(user_query)
+            cur.execute(hint_plan + " " + user_query)
             result = cur.fetchall()
         except ProgrammingError as e:
             print(e)

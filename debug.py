@@ -18,6 +18,7 @@ from helper import (
     update_costs,
     convert_html_to_dash,
 )
+from whatif3 import what_if
 
 from flask import Flask, request, jsonify
 import datetime
@@ -27,19 +28,23 @@ app = Dash(__name__, server=server, external_stylesheets=[dbc.themes.LUX])
 
 # Global variables
 queryid = None  # Placeholder logic. queryid can be local variable if modified query is known before execution
+query_with_hints_global = None  # Global variable to store query_with_hints
+
 
 # Pre populating input queries
 eg1 = "SELECT customer.c_name, nation.n_name FROM customer, nation WHERE customer.c_nationkey = nation.n_nationkey and customer.c_acctbal <= 5 and nation.n_nationkey <= 5"
 eg2 = "select sum(l_extendedprice * l_discount) as revenue from lineitem where l_shipdate >= date '1995-01-01' and l_shipdate < date '1995-01-01' + interval '1' year and l_discount between 0.09 - 0.01 and 0.09 + 0.01 and l_quantity < 24;"
 
-# Tab layouts
+# Populate General What Ifs as a multi-select dropdown
 tab_aqp_gen = html.Div(
     [
         dbc.Row(
             [
                 dbc.Card(
                     [
-                        dbc.CardBody(children="whats up gang", id="general-query") # placeholder children value. children should be added dynamically on aqp creation
+                        dbc.CardBody(
+                            children="whats up gang", id="general-query"
+                        )  # placeholder children value. children should be added dynamically on aqp creation
                     ]
                 )
             ]
@@ -51,26 +56,32 @@ tab_aqp_gen = html.Div(
                     id="graph-alt-gen",
                 )
             ]
-        )
+        ),
     ]
 )
 
-tab_general = dbc.InputGroup(
+tab_general = dcc.Dropdown(
+    id="dropdown-general",
+    options=[],
+    multi=True,
+    placeholder="Select general what-if scenarios...",
+    style={"width": "100%"},
+)
+
+# Populate Specific What Ifs as a single-select dropdown
+tab_specific = html.Div(
     [
         dcc.Dropdown(
-            ["No Sequential Scan", "No Index Scan", "No Bitmap Scan"],
+            id="dropdown-specific",
+            options=[],
+            multi=False,
+            placeholder="Select specific what-if scenario...",
             style={"width": "100%"},
-            multi=True,
         ),
-        dcc.Dropdown(
-            ["No Nested Loop Join", "No Hash Join", "No Merge join"],
-            style={"width": "100%"},
-            multi=True,
-        ),
+        dbc.ListGroup([], id="specific-whatif-list"),
     ]
 )
 
-tab_specific = dbc.ListGroup([], id="specific-whatif-list")
 
 tab_aqp_spec = html.Div(
     [
@@ -78,7 +89,9 @@ tab_aqp_spec = html.Div(
             [
                 dbc.Card(
                     [
-                        dbc.CardBody(children="whats up gang", id="specific-query") # placeholder children value. children should be added dynamically on aqp creation
+                        dbc.CardBody(
+                            children="whats up gang", id="specific-query"
+                        )  # placeholder children value. children should be added dynamically on aqp creation
                     ]
                 )
             ]
@@ -90,7 +103,7 @@ tab_aqp_spec = html.Div(
                     id="graph-alt",
                 )
             ]
-        )
+        ),
     ]
 )
 
@@ -98,6 +111,7 @@ app.layout = html.Div(
     [
         html.Div(
             [
+                # Select Query Section
                 dbc.Row(
                     [
                         dbc.Col(
@@ -210,7 +224,7 @@ app.layout = html.Div(
                                                     id="main-query-list",
                                                 )
                                             ],
-                                            style={"overflow": "scroll"}
+                                            style={"overflow": "scroll"},
                                         ),
                                     ],
                                     style={"height": "800px"},
@@ -220,6 +234,7 @@ app.layout = html.Div(
                         )
                     ]
                 ),
+                # Query Result Section
                 dbc.Row(
                     [
                         dbc.Col(
@@ -241,13 +256,23 @@ app.layout = html.Div(
                                                                     [
                                                                         dbc.Card(
                                                                             [
-                                                                                dbc.CardBody(children="IMPRESSING THE BRUZZ", id="original-query") # placeholder children value. children should be added dynamically on aqp creation
+                                                                                dbc.CardBody(
+                                                                                    children="IMPRESSING THE BRUZZ",
+                                                                                    id="original-query",
+                                                                                )  # placeholder children value. children should be added dynamically on aqp creation
                                                                             ],
                                                                         ),
                                                                     ],
                                                                 ),
                                                                 dbc.Row(
                                                                     [
+                                                                        html.Div(
+                                                                            id="query-hints",
+                                                                            style={
+                                                                                "padding": "10px",
+                                                                                "marginTop": "20px",
+                                                                            },
+                                                                        ),
                                                                         dbc.Card(
                                                                             [
                                                                                 dbc.CardBody(
@@ -312,8 +337,13 @@ app.layout = html.Div(
                                                                                                 ),
                                                                                             ],
                                                                                             id="tabs",
-                                                                                            value="gen-sp",
                                                                                         ),
+                                                                                        html.Div(
+                                                                                            id="dropdown-placeholder",
+                                                                                            style={
+                                                                                                "display": "none"
+                                                                                            },
+                                                                                        ),  # Hidden placeholder
                                                                                     ]
                                                                                 ),
                                                                                 dbc.Row(
@@ -624,49 +654,33 @@ app.layout = html.Div(
     [State("main-query-list", "children")],
 )
 def update_query_list(n1, n2, children):
-    # Delete Query
-    if n2 and children:
-        # Check that trigger is delete query
-        if (
-            isinstance(ctx.triggered_id, dict)
-            and ctx.triggered_id["type"] == "delete-query"
-        ):
-            print(f"\ndelete id is : {ctx.triggered_prop_ids}")
-            global queryid
-            queryid = ctx.triggered_id["index"]
-            i = 0
-            while i < len(children):
-                if children[i]["props"]["id"]["index"] == queryid:
-                    children.pop(i)
-                    break
-                i += 1
-
-    # Add Query
-    if n1:
-        # Check that trigger is add query
-        if isinstance(ctx.triggered_id, str) and ctx.triggered_id == "add-query":
-            print(f"\nadd id is : {ctx.triggered_prop_ids}")
-            new_item = dbc.ListGroupItem(
-                [
-                    dbc.Input(
-                        type="text", id={"type": "query-text", "index": len(children)}
-                    ),
-                    dbc.Button(
-                        "Run Query",
-                        id={"type": "run-query", "index": len(children)},
-                        style={"margin": 8, "height": "50px"},
-                    ),
-                    dbc.Button(
-                        "Delete Query",
-                        id={"type": "delete-query", "index": len(children)},
-                        style={"margin": 8, "height": "50px"},
-                    ),
-                ],
-                color="primary",
-                style={"margin": 2},
-                id={"type": "query", "index": len(children)},
-            )
-            children.append(new_item)
+    children = children or []  # Ensure children is a list
+    if (
+        n2
+        and isinstance(ctx.triggered_id, dict)
+        and ctx.triggered_id["type"] == "delete-query"
+    ):
+        index_to_delete = ctx.triggered_id["index"]
+        children = [
+            child
+            for child in children
+            if child["props"]["id"]["index"] != index_to_delete
+        ]
+    elif n1 and ctx.triggered_id == "add-query":
+        new_index = len(children)
+        new_item = dbc.ListGroupItem(
+            [
+                dbc.Input(type="text", id={"type": "query-text", "index": new_index}),
+                dbc.Button("Run Query", id={"type": "run-query", "index": new_index}),
+                dbc.Button(
+                    "Delete Query", id={"type": "delete-query", "index": new_index}
+                ),
+            ],
+            color="primary",
+            style={"margin": 2},
+            id={"type": "query", "index": new_index},
+        )
+        children.append(new_item)
     return children
 
 
@@ -680,13 +694,15 @@ def update_query_list(n1, n2, children):
         Output("buffer-size", "children"),
         Output("tab-general", "children"),
         Output("tab-specific", "children"),
+        Output("query-hints", "children"),  # New output for query_with_hints
     ],
     [Input({"type": "run-query", "index": ALL}, "n_clicks")],
     [State("main-query-list", "children")],
 )
 def draw_graph(n1, children):
+    global query_with_hints_global  # Declare the global variable
     if not any(n1 or []):
-        return "", "", "", "", "", "", [], []
+        return "", "", "", "", "", "", [], [], ""
     if n1:
         if (
             isinstance(ctx.triggered_id, dict)
@@ -701,14 +717,16 @@ def draw_graph(n1, children):
                     n_query = re.sub(r"\n|\t", " ", query).strip()
                     print(f"the query is : {n_query.upper()}")
                     tables_extracted = extract_tables_from_query(n_query.upper())
-                    specific_what_if, general_what_if, response = run_query(
-                        n_query, tables_extracted
+                    query_with_hints, specific_what_if, general_what_if, response = (
+                        run_query(n_query, tables_extracted)
                     )
+                    query_with_hints_global = query_with_hints
+                    print(query_with_hints_global)
                     results = response.get_json()  # Extract JSON data from the response
                     if "error" in results:
-                        print(f"Error: {results["error"]}")
+                        print(f"Error: {results['error']}")
                     else:
-                        print(f"Image URL: {results["data"]["imageUrl"]}")
+                        print(f'Image URL: {results["data"]["imageUrl"]}')
                         data = results["data"]
                         natural_explanation = data["additionalDetails"][
                             "naturalExplanation"
@@ -742,6 +760,12 @@ def draw_graph(n1, children):
                             style={"width": "100%"},
                         )
 
+                        # Wrap query_with_hints in a Div
+                        query_hints_div = html.Div(
+                            f"Query with Hints: {query_with_hints}",
+                            style={"fontSize": "16px", "color": "blue"},
+                        )
+
                         return (
                             custom_html,
                             natural,
@@ -751,20 +775,27 @@ def draw_graph(n1, children):
                             size,
                             general_dropdown,
                             specific_dropdown,
+                            query_hints_div,
                         )
-    return "", "", "", "", "", "", "", ""
+    return "", "", "", "", "", "", "", "", ""
 
 
 @app.callback(
     Output("specific-whatif-list", "children"),
-    [Input("interval-component", "n_intervals"), Input({"type": "run-query", "index": ALL}, "n_clicks")],
-    State("specific-whatif-list", "children")
+    [
+        Input("interval-component", "n_intervals"),
+        Input({"type": "run-query", "index": ALL}, "n_clicks"),
+    ],
+    State("specific-whatif-list", "children"),
 )
 def update_card(n_intervals, n1, children):
     # Reset specific what if when new query is ran
     if n1:
         # Check that trigger is run query
-        if isinstance(ctx.triggered_id, dict) and ctx.triggered_id["type"] == "run-query":
+        if (
+            isinstance(ctx.triggered_id, dict)
+            and ctx.triggered_id["type"] == "run-query"
+        ):
             children = []
             return children
 
@@ -787,6 +818,47 @@ def update_card(n_intervals, n1, children):
                     children.append(new_item)
     return children
 
+
+# Logic for dropdowns
+selected_options = []  # This will store the current dropdown selections
+
+
+@app.callback(
+    Output("dropdown-placeholder", "children"),  # Single shared output
+    [
+        Input("dropdown-general", "value"),
+        Input("dropdown-specific", "value"),
+        Input("tabs", "value"),
+    ],
+)
+def handle_tab_and_dropdown_changes(general_value, specific_value, active_tab):
+    global selected_options
+
+    if not ctx.triggered:
+        return ""
+
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+    if trigger_id == "tabs":
+        print(f"Active tab: {active_tab}")
+        # Reset the selected options when the tab changes
+        if active_tab != "gen-aqp-spec" and active_tab != "gen-aqp-gen":
+            selected_options = []
+            print(f"Reset selected options due to tab change: {selected_options}")
+    elif trigger_id == "dropdown-general" and active_tab == "gen-gen":
+        # Update for General What Ifs
+        if general_value:
+            selected_options = general_value  # Multi-select values
+            print(f"Updated selected options (general): {selected_options}")
+    elif trigger_id == "dropdown-specific" and active_tab == "gen-sp":
+        # Update for Specific What Ifs
+        if specific_value:
+            selected_options = [specific_value]  # Single-select value as a list
+            print(f"Updated selected options (specific): {selected_options}")
+
+    return ""  # Placeholder output to satisfy Dash requirements
+
+
 # AQP generation callback
 @app.callback(
     [
@@ -798,64 +870,69 @@ def update_card(n_intervals, n1, children):
         Output("buffer-size-alt", "children", allow_duplicate=True),
     ],
     [Input("tabs", "value")],
-    State("main-query-list", "children"),
+    [State("main-query-list", "children")],
     prevent_initial_call=True,
 )
-def generate_aqp(tab, children):
-    global queryid
-# Generating AQP for specific    
+def generate_aqp_specific(tab, children):
+    global selected_options
+    global query_with_hints_global  # Use the global variable
+    print(f"Current tab: {tab}")
     if tab == "gen-aqp-spec":
-        print(f"\nSTARTING ALTERNATE RUN {queryid}")
+        print(f"Starting AQP generation with options: {selected_options}")
+        global queryid
+        print(f"STARTING ALTERNATE RUN {queryid}")
         for i, child in enumerate(children):
             if child["props"]["id"]["index"] == queryid:
                 query = child["props"]["children"][0]["props"]["value"]
                 n_query = re.sub(r"\n|\t", " ", query).strip()
-                print(f"the query is : {n_query.upper()}")
+                print(f"The query is: {n_query.upper()}")
                 tables_extracted = extract_tables_from_query(n_query.upper())
-                response = run_query(n_query, tables_extracted)
+                response = what_if(
+                    query_with_hints_global, tables_extracted, selected_options
+                )
                 results = response.get_json()  # Extract JSON data from the response
                 if "error" in results:
-                    print(f"Error: {results["error"]}")
+                    print(f"Error: {results['error']}")
                 else:
-                    print(f"Image URL: {results["data"]["imageUrl"]}")
+                    print(f'Image URL: {results["data"]["imageUrl"]}')
                     data = results["data"]
                     natural_explanation = data["additionalDetails"][
                         "naturalExplanation"
                     ]
-                    natural = natural_explanation
-                    natural = convert_html_to_dash(natural)
+                    natural = convert_html_to_dash(natural_explanation)
                     imageurl = data["imageUrl"]
                     custom_html = read_graph(imageurl)
                     hit, read, total, size = update_costs(data)
                     return custom_html, natural, hit, read, total, size
 
-# Generating AQP for general
-    elif tab == "gen-aqp-gen":
-        print(f"\nSTARTING ALTERNATE RUN {queryid}")
-        for i, child in enumerate(children):
-            if child["props"]["id"]["index"] == queryid:
-                query = child["props"]["children"][0]["props"]["value"]
-                n_query = re.sub(r"\n|\t", " ", query).strip()
-                print(f"the query is : {n_query.upper()}")
-                tables_extracted = extract_tables_from_query(n_query.upper())
-                response = run_query(n_query, tables_extracted)
-                results = response.get_json()  # Extract JSON data from the response
-                if "error" in results:
-                    print(f"Error: {results["error"]}")
-                else:
-                    print(f"Image URL: {results["data"]["imageUrl"]}")
-                    data = results["data"]
-                    natural_explanation = data["additionalDetails"][
-                        "naturalExplanation"
-                    ]
-                    natural = natural_explanation
-                    natural = convert_html_to_dash(natural)
-                    imageurl = data["imageUrl"]
-                    custom_html = read_graph(imageurl)
-                    hit, read, total, size = update_costs(data)
-                    return custom_html, natural, hit, read, total, size
+    # # Generating AQP for general
+    # elif tab == "gen-aqp-gen":
+    #     print(f"\nSTARTING ALTERNATE RUN {queryid}")
+    #     for i, child in enumerate(children):
+    #         if child["props"]["id"]["index"] == queryid:
+    #             query = child["props"]["children"][0]["props"]["value"]
+    #             n_query = re.sub(r"\n|\t", " ", query).strip()
+    #             print(f"the query is : {n_query.upper()}")
+    #             tables_extracted = extract_tables_from_query(n_query.upper())
+    #             response = run_query(n_query, tables_extracted)
+    #             results = response.get_json()  # Extract JSON data from the response
+    #             if "error" in results:
+    #                 print(f"Error: {results["error"]}")
+    #             else:
+    #                 print(f"Image URL: {results["data"]["imageUrl"]}")
+    #                 data = results["data"]
+    #                 natural_explanation = data["additionalDetails"][
+    #                     "naturalExplanation"
+    #                 ]
+    #                 natural = natural_explanation
+    #                 natural = convert_html_to_dash(natural)
+    #                 imageurl = data["imageUrl"]
+    #                 custom_html = read_graph(imageurl)
+    #                 hit, read, total, size = update_costs(data)
+    #                 return custom_html, natural, hit, read, total, size
 
     return "", "", "", "", "", ""
+
 
 """
 def generate_aqp_specific(n1, n2, query_list):

@@ -65,7 +65,6 @@ def extract_tables_from_query(sql_query: str):
                 # Otherwise, use the next token as the key itself
                 current_alias = token
                 table_aliases[current_alias] = token
-
     return table_aliases
 
 
@@ -83,6 +82,7 @@ def run_query(query, relations):
         else:
             specific_what_if = response["specific_what_if"]
             general_what_if = response["general_what_if"]
+            query_with_hints = response["query_with_hints"]
             json_path = response["plan_data_path"]
             with open(json_path, "r") as json_file:
                 plan = json.load(json_file)
@@ -95,10 +95,10 @@ def run_query(query, relations):
                 "haveCtids": response["block_analysis"]["have_ctids"],
                 "isAggregation": response["block_analysis"]["is_aggregation"],
                 "imageUrl": image_url,
-                'hints': response['hints'],
-                'modifiedQuery': response['query_with_hints'],
-                'generalWhatif': response['general_what_if'],
-                'specificWhatif': response['specific_what_if'],
+                "hints": response["hints"],
+                "modifiedQuery": response["query_with_hints"],
+                "generalWhatif": response["general_what_if"],
+                "specificWhatif": response["specific_what_if"],
                 "additionalDetails": {
                     "naturalExplanation": response["natural_explain"],
                     "totalCost": response["summary_data"]["total_cost"],
@@ -107,7 +107,7 @@ def run_query(query, relations):
                 },
             }
 
-        return specific_what_if, general_what_if, jsonify(result)
+        return query_with_hints, specific_what_if, general_what_if, jsonify(result)
     return jsonify({"error": "No query provided"})
 
 
