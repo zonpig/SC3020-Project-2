@@ -132,7 +132,6 @@ def visualize_query_plan(plan):
     fig = go.Figure(data=[edge_trace, node_trace])
 
     fig.update_layout(
-        title="Query Plan Visualization<br>Click node to see what-if options",
         showlegend=False,
         hovermode="closest",
         margin=dict(b=20, l=5, r=5, t=40),
