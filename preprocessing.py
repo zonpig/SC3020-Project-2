@@ -120,11 +120,35 @@ def process_query(user_query, relations):
     try:
         connection = Database.get_connection()
 
-        # get base query plan
+        # Check for SET statements
+        set_statements = []
+        main_query = user_query
+        if "SET" in user_query.upper():
+            queries = user_query.split(";")
+            for query in queries:
+                query = query.strip()
+                if query.upper().startswith("SET"):
+                    set_statements.append(query)
+                else:
+                    main_query = query
+
+        # Execute SET statements
+        with connection.cursor() as cur:
+            for set_statement in set_statements:
+                try:
+                    print(f"Executing SET statement: {set_statement}")
+                    cur.execute(set_statement)
+                except ProgrammingError as e:
+                    print(e)
+                    cur.execute("ROLLBACK;")
+                    return True, {"msg": f"Error in SET statement: {set_statement}"}
+
+        # Get base query plan
         with connection.cursor() as cur:
             try:
-                # execute query and get results
-                cur.execute(query_str)
+                # Execute query and get results
+                explain_query_str = f"EXPLAIN (ANALYZE, COSTS, SETTINGS, VERBOSE, BUFFERS, SUMMARY, FORMAT JSON) {main_query};"
+                cur.execute(explain_query_str)
                 plan = cur.fetchall()[0][0][0].get("Plan")
             except ProgrammingError as e:
                 print(e)
@@ -207,6 +231,31 @@ def get_block_analysis(user_query, relations, connection):
         end_hint = user_query.find("*/") + 2
         hint_plan = user_query[:end_hint]
         user_query = user_query[end_hint:].strip()
+
+    # Check for SET statements
+    set_statements = []
+    main_query = user_query
+    if "SET" in user_query.upper():
+        queries = user_query.split(";")
+        for query in queries:
+            query = query.strip()
+            if query.upper().startswith("SET"):
+                set_statements.append(query)
+            else:
+                main_query = query
+
+    # Execute SET statements
+    with connection.cursor() as cur:
+        for set_statement in set_statements:
+            try:
+                print(f"Executing SET statement: {set_statement}")
+                cur.execute(set_statement)
+            except ProgrammingError as e:
+                print(e)
+                cur.execute("ROLLBACK;")
+                return None
+
+    user_query = main_query
 
     if user_query.upper().count("FROM (") >= 1:
         print("Detect nested SELECT cases.")

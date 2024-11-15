@@ -2,6 +2,7 @@ import networkx as nx
 import plotly.graph_objects as go
 from networkx.drawing.nx_agraph import graphviz_layout
 import datetime
+from preprocessing import produce_hints, generate_what_if_questions
 
 
 class AlternativeQueryPlan:
@@ -95,6 +96,8 @@ def visualize_query_plan(plan):
         else:
             options = []
 
+        hint = produce_hints(details) if produce_hints(details) else None
+
         node_info = {
             "type": details.get("Node Type", "N/A"),
             "cost": details.get("Total Cost", "N/A"),
@@ -103,6 +106,7 @@ def visualize_query_plan(plan):
             "options": options,
             "changed": G.nodes[node]["changed"],
             "node_id": node,
+            "hint": hint,
         }
         node_details.append(node_info)
         node_labels.append(G.nodes[node]["label"])
@@ -293,6 +297,7 @@ def visualize_query_plan(plan):
                     currentNode = point.customdata;
                     selectedNode = currentNode.type;
                     selectedNodeId = currentNode.node_id;
+                    selectedHint = currentNode.hint;
                     
                     console.log('Node clicked:', selectedNodeId);
                     
@@ -322,6 +327,7 @@ def visualize_query_plan(plan):
                         Node: ${{selectedNode}}<br>
                         Node ID: ${{selectedNodeId}} <br>
                         What-if: ${{selectedOption}}
+                        
                     `;
                     
                     console.log('Selected:', {{
@@ -338,7 +344,8 @@ def visualize_query_plan(plan):
                         body: JSON.stringify({{
                             node_type: selectedNode,
                             node_id: selectedNodeId,
-                            what_if: selectedOption
+                            what_if: selectedOption,
+                            hint: selectedHint
                         }})
                     }});
                     

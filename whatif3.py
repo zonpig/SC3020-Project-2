@@ -105,11 +105,27 @@ change_scan_mapping = {
 }
 
 
+join_map_to_plan = {
+    "Hash Join": "HashJoin",
+    "Merge Join": "MergeJoin",
+    "Nested Loop": "NestedLoop",
+}
+
+scan_map_to_plan = {
+    "Seq Scan": "SeqScan",
+    "Index Scan": "IndexScan",
+    "Bitmap Heap Scan": "BitmapScan",
+}
+
+
 def what_if(query, relations, questions):
-    scenario = None
+    # print("questions", questions)
+    # # Specific Scenario (Tree)
+    # if isinstance(questions[0], dict):
+    #     print("
+
     # General Scenario
     if questions[0] in question_to_planner_option:
-        scenario = "General"
         planner_option = []
         reset_statements = []
         for question in questions:
@@ -125,8 +141,6 @@ def what_if(query, relations, questions):
         print(reset_statements)
 
     else:
-        # Specific Scenario (Tree)
-
         # Specific Scenario (Dropdown)
         replacements = []
 
@@ -165,32 +179,11 @@ def what_if(query, relations, questions):
                     query,
                 )
 
-    if scenario == "General":
-        try:
-            connection = Database.get_connection()
-
-            with connection.cursor() as cur:
-                try:
-                    cur.execute(planner_option)
-                    result = {"query": modified_query}
-                    print("test", modified_query)
-                    has_error, response = process_query(
-                        query, relations
-                    )  # Define this function based on your needs'
-                    cur.execute(reset_statements)
-                except ProgrammingError as e:
-                    print(e)
-                    cur.execute("ROLLBACK;")
-                    return True, {"msg": "Invalid SQL query!"}
-        except OperationalError:
-            return True, {"msg": "Database connection error!"}
-
-    else:
-        result = {"query": modified_query}
-        print("test", modified_query)
-        has_error, response = process_query(
-            modified_query, relations
-        )  # Define this function based on your needs
+    result = {"query": modified_query}
+    print("test", modified_query)
+    has_error, response = process_query(
+        modified_query, relations
+    )  # Define this function based on your needs
     if has_error:
         result["error"] = response["msg"]
     else:

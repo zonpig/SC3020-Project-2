@@ -69,6 +69,10 @@ tab_general = dcc.Dropdown(
 )
 
 # Populate Specific What Ifs as a single-select dropdown
+# tab_specific_option =
+tab_specific_qep = dbc.ListGroup([], id="specific-whatif-list")
+
+
 tab_specific = html.Div(
     [
         dcc.Dropdown(
@@ -100,7 +104,7 @@ tab_aqp_spec = html.Div(
             [
                 html.Iframe(
                     style={"width": "100%", "height": "800px"},
-                    id="graph-alt",
+                    id="graph-alt-spec",
                 )
             ]
         ),
@@ -328,6 +332,12 @@ app.layout = html.Div(
                                                                                                     label="Specific What Ifs",
                                                                                                     id="tab-specific",
                                                                                                 ),
+                                                                                                # dcc.Tab(
+                                                                                                #     tab_specific_qep,
+                                                                                                #     value="gen-qep",
+                                                                                                #     label="QEP",
+                                                                                                #     id="tab-qep",
+                                                                                                # ),
                                                                                                 dcc.Tab(
                                                                                                     tab_aqp_spec,
                                                                                                     value="gen-aqp-spec",
@@ -862,12 +872,27 @@ def handle_tab_and_dropdown_changes(general_value, specific_value, active_tab):
 # AQP generation callback
 @app.callback(
     [
-        Output("graph-alt", "srcDoc"),
-        Output("natural-language-alt", "children", allow_duplicate=True),
-        Output("hit-block-alt", "children", allow_duplicate=True),
-        Output("read-block-alt", "children", allow_duplicate=True),
-        Output("total-cost-alt", "children", allow_duplicate=True),
-        Output("buffer-size-alt", "children", allow_duplicate=True),
+        Output("graph-alt-spec", "srcDoc"),
+        Output(
+            "natural-language-alt",
+            "children",
+        ),
+        Output(
+            "hit-block-alt",
+            "children",
+        ),
+        Output(
+            "read-block-alt",
+            "children",
+        ),
+        Output(
+            "total-cost-alt",
+            "children",
+        ),
+        Output(
+            "buffer-size-alt",
+            "children",
+        ),
     ],
     [Input("tabs", "value")],
     [State("main-query-list", "children")],
@@ -876,8 +901,87 @@ def handle_tab_and_dropdown_changes(general_value, specific_value, active_tab):
 def generate_aqp_specific(tab, children):
     global selected_options
     global query_with_hints_global  # Use the global variable
+    global selections
+    global queryid
+
     print(f"Current tab: {tab}")
-    if tab == "gen-aqp-spec" or tab == "gen-aqp-gen":
+    if tab == "gen-aqp-spec":
+        if selected_options:
+            print(f"Starting AQP generation with options: {selected_options}")
+            print(f"STARTING ALTERNATE RUN {queryid}")
+            for i, child in enumerate(children):
+                if child["props"]["id"]["index"] == queryid:
+                    query = child["props"]["children"][0]["props"]["value"]
+                    n_query = re.sub(r"\n|\t", " ", query).strip()
+                    print(f"The query is: {n_query.upper()}")
+                    tables_extracted = extract_tables_from_query(n_query.upper())
+                    response = what_if(
+                        query_with_hints_global, tables_extracted, selected_options
+                    )
+                    results = response.get_json()  # Extract JSON data from the response
+                    if "error" in results:
+                        print(f"Error: {results['error']}")
+                    else:
+                        print(f'Image URL: {results["data"]["imageUrl"]}')
+                        data = results["data"]
+                        natural_explanation = data["additionalDetails"][
+                            "naturalExplanation"
+                        ]
+                        natural = convert_html_to_dash(natural_explanation)
+                        imageurl = data["imageUrl"]
+                        custom_html = read_graph(imageurl)
+                        hit, read, total, size = update_costs(data)
+                        return custom_html, natural, hit, read, total, size
+        # else:
+        #     print(f"Starting AQP generation with options: {selections}")
+        #     print(f"STARTING ALTERNATE RUN {queryid}")
+        #     for i, child in enumerate(children):
+        #         if child["props"]["id"]["index"] == queryid:
+        #             query = child["props"]["children"][0]["props"]["value"]
+        #             n_query = re.sub(r"\n|\t", " ", query).strip()
+        #             print(f"The query is: {n_query.upper()}")
+        #             tables_extracted = extract_tables_from_query(n_query.upper())
+        #             print(f"Selections: {selections}")
+        #             response = what_if(
+        #                 query_with_hints_global, tables_extracted, selections
+        #             )
+        #             results = response.get_json()  # Extract JSON data from the response
+        #             if "error" in results:
+        #                 print(f"Error: {results['error']}")
+        #             else:
+        #                 print(f'Image URL: {results["data"]["imageUrl"]}')
+        #                 data = results["data"]
+        #                 natural_explanation = data["additionalDetails"][
+        #                     "naturalExplanation"
+        #                 ]
+        #                 natural = convert_html_to_dash(natural_explanation)
+        #                 imageurl = data["imageUrl"]
+        #                 custom_html = read_graph(imageurl)
+        #                 hit, read, total, size = update_costs(data)
+        #                 return custom_html, natural, hit, read, total, size
+    return "", "", "", "", "", ""
+
+
+@app.callback(
+    [
+        Output("graph-alt-gen", "srcDoc"),
+        Output("natural-language-alt", "children", allow_duplicate=True),
+        Output("hit-block-alt", "children", allow_duplicate=True),
+        Output("read-block-alt", "children", allow_duplicate=True),
+        Output("total-cost-alt", "children", allow_duplicate=True),
+        Output("buffer-size-alt", "children", allow_duplicate=True),
+    ],
+    [
+        Input("tabs", "value"),
+    ],
+    [State("main-query-list", "children")],
+    prevent_initial_call=True,
+)
+def generate_aqp_general(tab, children):
+    global selected_options
+    global query_with_hints_global  # Use the global variable
+    print(f"Current tab: {tab}")
+    if tab == "gen-aqp-gen":
         print(f"Starting AQP generation with options: {selected_options}")
         global queryid
         print(f"STARTING ALTERNATE RUN {queryid}")
@@ -907,43 +1011,6 @@ def generate_aqp_specific(tab, children):
     return "", "", "", "", "", ""
 
 
-"""
-def generate_aqp_specific(n1, n2, query_list):
-    if not (n1 and n2):
-        return "", "", "", "", "", ""
-        
-    try:
-        current_query = next((child["props"]["children"][0]["props"]["value"] 
-                            for child in query_list 
-                            if child["props"]["children"][0]["props"].get("value")), None)
-        
-        if not current_query:
-            raise ValueError("No query found")
-        
-        print(f"\nFUCK ME WHAT IS MY CURRENT QUERY : {current_query}")
-        n_query = re.sub(r"\n|\t", " ", current_query).strip()
-        tables_extracted = extract_tables_from_query(n_query.upper())
-            
-        selections_response = requests.get("http://localhost:8050/get-selections")
-        selections_data = selections_response.json()
-        print(selections_data)
-        response = run_query(current_query, tables_extracted)
-        
-        results = response.get_json()
-        if "error" in results:
-            raise ValueError(results["error"])
-        
-        data = results["data"]
-        natural = convert_html_to_dash(data["additionalDetails"]["naturalExplanation"])
-        custom_html = read_graph(data["imageUrl"])
-        hit, read, total, size = update_costs(data)
-        
-        return custom_html, natural, hit, read, total, size
-            
-    except Exception as e:
-        print(f"Error generating AQP: {str(e)}")
-        return dash.no_update
-"""
 # SERVER CALLS
 selections = []
 
@@ -951,11 +1018,13 @@ selections = []
 @server.route("/nodeclick", methods=["POST"])
 def receive_nodeclick():
     data = request.get_json()
+    print(data)
     current_selection = {
         "timestamp": datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
         "node_type": data.get("type"),
         "node_id": data.get("node_id"),
         "what_if": data.get("what_if"),
+        "hint": data.get("hint"),
     }
 
     # Update or append selection
