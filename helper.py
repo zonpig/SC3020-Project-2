@@ -88,6 +88,10 @@ def run_query(query, relations):
                 "haveCtids": response["block_analysis"]["have_ctids"],
                 "isAggregation": response["block_analysis"]["is_aggregation"],
                 "imageUrl": image_url,
+                'hints': response['hints'],
+                'modifiedQuery': response['query_with_hints'],
+                'generalWhatif': response['general_what_if'],
+                'specificWhatif': response['specific_what_if'],
                 "additionalDetails": {
                     "naturalExplanation": response["natural_explain"],
                     "totalCost": response["summary_data"]["total_cost"],

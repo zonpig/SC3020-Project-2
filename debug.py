@@ -63,7 +63,7 @@ app.layout = html.Div([
                                 color='primary', style={'margin': 2}, id={'type': 'query', 'index': 1}
                             )
                         ], id='main-query-list')
-                    ]),
+                    ], style={'overflow': 'scroll',}),
                 ], style={'height': '800px'})
             ], width=12)
         ]),
@@ -178,6 +178,10 @@ app.layout = html.Div([
     [State('main-query-list', 'children')],
 )
 def update_query_list(n1, n2, children):
+    # Stop callback at initialise
+    if not any(n1 or []) and not any(n2 or []):
+        return children
+
     # Delete Query
     if n2 and children:
         # Check that trigger is delete query
@@ -215,41 +219,53 @@ def update_query_list(n1, n2, children):
     [Input({'type': 'run-query', 'index': ALL}, 'n_clicks')],
     [State('main-query-list', 'children')]
 )
-
 def draw_graph(n1, children):
-    if n1:
-        if isinstance(ctx.triggered_id, dict) and ctx.triggered_id['type'] == 'run-query':
-            print(f'\nrun id is : {ctx.triggered_id}')
-            global queryid
-            queryid = ctx.triggered_id['index']
-            for i, child in enumerate(children):
-                if child['props']['id']['index'] == queryid:
-                    query = child['props']['children'][0]['props']['value']
-                    n_query = re.sub(r'\n|\t', " ", query).strip()
-                    print(f'the query is : {n_query.upper()}')
-                    tables_extracted = extract_tables_from_query(n_query.upper())
-                    response = run_query(n_query, tables_extracted)
-                    results = response.get_json()  # Extract JSON data from the response
-                    if 'error' in results:
-                        print(f"Error: {results['error']}")
-                    else:
-                        print(f"Image URL: {results['data']['imageUrl']}")
-                        data = results['data']
-                        natural_explanation = data['additionalDetails']['naturalExplanation']
-                        natural = natural_explanation
-                        natural = convert_html_to_dash(natural)
-                        imageurl = data['imageUrl']
-                        custom_html = read_graph(imageurl)
-                        hit, read, total, size = update_costs(data)
-                        return custom_html, natural, hit, read, total, size
+    # Stop callback at initialise
+    if not any(n1 or []):
+        return '', '', '', '', '', ''
+    
+    # Check that trigger is run query
+    if isinstance(ctx.triggered_id, dict) and ctx.triggered_id['type'] == 'run-query':
+        print(f'\nrun id is : {ctx.triggered_id}')
+        global queryid
+        global selections
+        selections = []
+        queryid = ctx.triggered_id['index']
+        for i, child in enumerate(children):
+            if child['props']['id']['index'] == queryid:
+                query = child['props']['children'][0]['props']['value']
+                n_query = re.sub(r'\n|\t', " ", query).strip()
+                print(f'the query is : {n_query.upper()}')
+                tables_extracted = extract_tables_from_query(n_query.upper())
+                response = run_query(n_query, tables_extracted)
+                results = response.get_json()  # Extract JSON data from the response
+                if 'error' in results:
+                    print(f"Error: {results['error']}")
+                else:
+                    print(f"Image URL: {results['data']['imageUrl']}")
+                    data = results['data']
+                    natural_explanation = data['additionalDetails']['naturalExplanation']
+                    natural = natural_explanation
+                    natural = convert_html_to_dash(natural)
+                    imageurl = data['imageUrl']
+                    custom_html = read_graph(imageurl)
+                    hit, read, total, size = update_costs(data)
+                    return custom_html, natural, hit, read, total, size
     return '', '', '', '', '', ''
 
 @app.callback(
     Output('specific-whatif-list', 'children'),
-    Input('interval-component', 'n_intervals'),
+    [Input('interval-component', 'n_intervals'), Input({'type': 'run-query', 'index': ALL}, 'n_clicks')],
     State('specific-whatif-list', 'children')
 )
-def update_card(n_intervals, children):
+def update_card(n_intervals, n1, children):
+    # Reset specific what if when new query is ran
+    if n1:
+        # Check that trigger is run query
+        if isinstance(ctx.triggered_id, dict) and ctx.triggered_id['type'] == 'run-query':
+            children = []
+            return children
+
     if children is None:
         children = []
     if selections:
@@ -284,7 +300,6 @@ def update_card(n_intervals, children):
     prevent_initial_call=True
 )
 def generate_aqp_specific(tab, children):
-    print(f'\nwtf is going on\n{tab}')
     if tab == 'gen-aqp':
         global queryid
         print(f'\nSTARTING ALTERNATE RUN {queryid}')
