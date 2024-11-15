@@ -30,7 +30,7 @@ queryid = None  # Placeholder logic. queryid can be local variable if modified q
 
 # Pre populating input queries
 eg1 = "SELECT customer.c_name, nation.n_name FROM customer, nation WHERE customer.c_nationkey = nation.n_nationkey and customer.c_acctbal <= 5 and nation.n_nationkey <= 5"
-eg2 = "select sum(l_extendedprice * l_discount) as revenue from lineitem where l_shipdate >= date "1995-01-01" and l_shipdate < date "1995-01-01" + interval "1" year and l_discount between 0.09 - 0.01 and 0.09 + 0.01 and l_quantity < 24;"
+eg2 = "select sum(l_extendedprice * l_discount) as revenue from lineitem where l_shipdate >= date '1995-01-01' and l_shipdate < date '1995-01-01' + interval '1' year and l_discount between 0.09 - 0.01 and 0.09 + 0.01 and l_quantity < 24;"
 
 # Tab layouts
 tab_general = dbc.InputGroup(
