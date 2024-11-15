@@ -170,7 +170,8 @@ app.layout = html.Div(
                                                     ],
                                                     id="main-query-list",
                                                 )
-                                            ]
+                                            ],
+                                            style={"overflow": "scroll"}
                                         ),
                                     ],
                                     style={"height": "800px"},
@@ -562,12 +563,11 @@ app.layout = html.Div(
         Input({"type": "delete-query", "index": ALL}, "n_clicks"),
     ],
     [State("main-query-list", "children")],
+    prevent_initial_callback=True,
 )
 def update_query_list(n1, n2, children):
-    # Stop callback at initialise
     if not any(n1 or []) and not any(n2 or []):
         return children
-
     # Delete Query
     if n2 and children:
         # Check that trigger is delete query
@@ -630,10 +630,8 @@ def update_query_list(n1, n2, children):
     prevent_initial_call=True,  # Prevent callback on app load
 )
 def draw_graph(n1, children):
-    # Stop callback at initialise
     if not any(n1 or []):
-        return "", "", "", "", "", ""
-    
+        return "", "", "", "", "", "", [], []
     if n1:
         if (
             isinstance(ctx.triggered_id, dict)
@@ -641,9 +639,6 @@ def draw_graph(n1, children):
         ):
             print(f"\nrun id is : {ctx.triggered_id}")
             global queryid
-            # Reset selection list at new query run
-            global selections
-            selections = []
             queryid = ctx.triggered_id["index"]
             for i, child in enumerate(children):
                 if child["props"]["id"]["index"] == queryid:
@@ -736,7 +731,6 @@ def update_card(n_intervals, n1, children):
                     new_item = dbc.ListGroupItem([text], id=str(nodeid))
                     children.append(new_item)
     return children
-
 
 # AQP generation callback
 @app.callback(
