@@ -877,7 +877,7 @@ def generate_aqp_specific(tab, children):
     global selected_options
     global query_with_hints_global  # Use the global variable
     print(f"Current tab: {tab}")
-    if tab == "gen-aqp-spec":
+    if tab == "gen-aqp-spec" or tab == "gen-aqp-gen":
         print(f"Starting AQP generation with options: {selected_options}")
         global queryid
         print(f"STARTING ALTERNATE RUN {queryid}")
@@ -904,33 +904,6 @@ def generate_aqp_specific(tab, children):
                     custom_html = read_graph(imageurl)
                     hit, read, total, size = update_costs(data)
                     return custom_html, natural, hit, read, total, size
-
-    # # Generating AQP for general
-    # elif tab == "gen-aqp-gen":
-    #     print(f"\nSTARTING ALTERNATE RUN {queryid}")
-    #     for i, child in enumerate(children):
-    #         if child["props"]["id"]["index"] == queryid:
-    #             query = child["props"]["children"][0]["props"]["value"]
-    #             n_query = re.sub(r"\n|\t", " ", query).strip()
-    #             print(f"the query is : {n_query.upper()}")
-    #             tables_extracted = extract_tables_from_query(n_query.upper())
-    #             response = run_query(n_query, tables_extracted)
-    #             results = response.get_json()  # Extract JSON data from the response
-    #             if "error" in results:
-    #                 print(f"Error: {results["error"]}")
-    #             else:
-    #                 print(f"Image URL: {results["data"]["imageUrl"]}")
-    #                 data = results["data"]
-    #                 natural_explanation = data["additionalDetails"][
-    #                     "naturalExplanation"
-    #                 ]
-    #                 natural = natural_explanation
-    #                 natural = convert_html_to_dash(natural)
-    #                 imageurl = data["imageUrl"]
-    #                 custom_html = read_graph(imageurl)
-    #                 hit, read, total, size = update_costs(data)
-    #                 return custom_html, natural, hit, read, total, size
-
     return "", "", "", "", "", ""
 
 

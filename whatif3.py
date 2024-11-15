@@ -1,7 +1,8 @@
 import re
-from preprocessing import process_query
+from preprocessing import process_query, Database
 from interactive_interface import visualize_query_plan
 from flask import jsonify
+from psycopg2 import OperationalError, ProgrammingError
 import json
 
 question_to_planner_option = {
@@ -105,8 +106,10 @@ change_scan_mapping = {
 
 
 def what_if(query, relations, questions):
+    scenario = None
     # General Scenario
     if questions[0] in question_to_planner_option:
+        scenario = "General"
         planner_option = []
         reset_statements = []
         for question in questions:
@@ -162,11 +165,32 @@ def what_if(query, relations, questions):
                     query,
                 )
 
-    result = {"query": modified_query}
-    print("test", modified_query)
-    has_error, response = process_query(
-        modified_query, relations
-    )  # Define this function based on your needs
+    if scenario == "General":
+        try:
+            connection = Database.get_connection()
+
+            with connection.cursor() as cur:
+                try:
+                    cur.execute(planner_option)
+                    result = {"query": modified_query}
+                    print("test", modified_query)
+                    has_error, response = process_query(
+                        query, relations
+                    )  # Define this function based on your needs'
+                    cur.execute(reset_statements)
+                except ProgrammingError as e:
+                    print(e)
+                    cur.execute("ROLLBACK;")
+                    return True, {"msg": "Invalid SQL query!"}
+        except OperationalError:
+            return True, {"msg": "Database connection error!"}
+
+    else:
+        result = {"query": modified_query}
+        print("test", modified_query)
+        has_error, response = process_query(
+            modified_query, relations
+        )  # Define this function based on your needs
     if has_error:
         result["error"] = response["msg"]
     else:
@@ -191,11 +215,6 @@ def what_if(query, relations, questions):
         }
 
     return jsonify(result)
-
-    # try:
-    #     connection = Database.get_connection()
-    #     cursor = connection.cursor()
-    #     cursor.execute(modified_query)
 
 
 query = "/*+ SeqScan(nation) SeqScan(customer) HashJoin(customer nation) */ SELECT CUSTOMER.C_NAME, NATION.N_NAME FROM CUSTOMER, NATION WHERE CUSTOMER.C_NATIONKEY = NATION.N_NATIONKEY  AND CUSTOMER.C_ACCTBAL <= 5 AND NATION.N_NATIONKEY <= 5;"
