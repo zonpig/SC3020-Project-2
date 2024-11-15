@@ -563,11 +563,8 @@ app.layout = html.Div(
         Input({"type": "delete-query", "index": ALL}, "n_clicks"),
     ],
     [State("main-query-list", "children")],
-    prevent_initial_callback=True,
 )
 def update_query_list(n1, n2, children):
-    if not any(n1 or []) and not any(n2 or []):
-        return children
     # Delete Query
     if n2 and children:
         # Check that trigger is delete query
@@ -627,7 +624,6 @@ def update_query_list(n1, n2, children):
     ],
     [Input({"type": "run-query", "index": ALL}, "n_clicks")],
     [State("main-query-list", "children")],
-    prevent_initial_call=True,  # Prevent callback on app load
 )
 def draw_graph(n1, children):
     if not any(n1 or []):
