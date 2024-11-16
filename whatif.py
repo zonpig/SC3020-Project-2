@@ -1,113 +1,219 @@
-import time
+import re
+from preprocessing import process_query
+from interactive_interface import visualize_query_plan
+from flask import jsonify
 import json
-from preprocessing import (
-    Database,
-    get_plan_summary,
-    get_natural_explanation,
-    get_block_analysis,
-)
-from psycopg2 import ProgrammingError, OperationalError
+
+question_to_planner_option = {
+    "What happens if I don't use BitMap Scan at all?": "SET enable_bitmapscan to off;",  # Actually Bitmap
+    "What happens if I don't use Index Scan at all?": "SET enable_indexscan to off;",
+    "What happens if I don't use Sequential Scan at all?": "SET enable_seqscan to off;",
+    "What happens if I don't use Nested Loop Join at all?": "SET enable_nestloop to off;",
+    "What happens if I don't use Merge Join at all?": "SET enable_mergejoin to off;",
+    "What happens if I don't use Hash Join at all?": "SET enable_hashjoin to off;",
+}
+
+reset_options = {
+    "SET enable_bitmapscan to off;": "RESET enable_bitmapscan;",
+    "SET enable_indexscan to off;": "RESET enable_indexscan;",
+    "SET enable_seqscan to off;": "RESET enable_seqscan;",
+    "SET enable_nestloop to off;": "RESET enable_nestloop;",
+    "SET enable_mergejoin to off;": "RESET enable_mergejoin;",
+    "SET enable_hashjoin to off;": "RESET enable_hashjoin;",
+}
+
+change_scan_mapping = {
+    # Sequential Scan
+    "replace Sequential Scan with an Index Scan": (
+        "SeqScan",
+        "IndexScan",
+    ),
+    "replace Sequential Scan with a BitMap Scan": (
+        "SeqScan",
+        "BitmapScan",
+    ),
+    "prevent the use of Sequential Scan": (
+        "SeqScan",
+        "NoSeqScan",
+    ),
+    # Index Scan
+    "replace Index Scan with a Sequential Scan": (
+        "IndexScan",
+        "SeqScan",
+    ),
+    "replace Index Scan with a BitMap Scan": (
+        "IndexScan",
+        "BitmapScan",
+    ),
+    "prevent the use of Index Scan": (
+        "IndexScan",
+        "NoIndexScan",
+    ),
+    # Bitmap Scan
+    "replace BitMap Scan with a Sequential Scan": (
+        "BitmapScan",
+        "SeqScan",
+    ),
+    "replace BitMap Scan with an Index Scan": (
+        "BitmapScan",
+        "IndexScan",
+    ),
+    "prevent the use of BitMap Scan": (
+        "BitmapScan",
+        "NoBitmapScan",
+    ),
+    # Nested Loop Join
+    "replace Nested Loop Join with a Merge Join": (
+        "NestedLoop",
+        "MergeJoin",
+    ),
+    "replace Nested Loop Join with a Hash Join": (
+        "NestedLoop",
+        "HashJoin",
+    ),
+    "prevent the use of Nested Loop Join": (
+        "NestedLoop",
+        "NoNestedLoop",
+    ),
+    # Merge Join
+    "replace Merge Join with a Nested Loop Join": (
+        "MergeJoin",
+        "NestedLoop",
+    ),
+    "replace Merge Join with a Hash Join": (
+        "MergeJoin",
+        "HashJoin",
+    ),
+    "prevent the use of Merge Join": (
+        "MergeJoin",
+        "NoMergeJoin",
+    ),
+    # Hash Join
+    "replace Hash Join with a Nested Loop Join": (
+        "HashJoin",
+        "NestedLoop",
+    ),
+    "replace Hash Join with a Merge Join": (
+        "HashJoin",
+        "MergeJoin",
+    ),
+    "prevent the use of Hash Join": (
+        "HashJoin",
+        "NoHashJoin",
+    ),
+}
 
 
-def process_whatif_query(user_query, relations, parameters):
-    """
-    Process what-if analysis for query optimization based on user parameters.
+scan_join_map_to_plan = {
+    "Seq Scan": "SeqScan",
+    "Index Scan": "IndexScan",
+    "Bitmap Heap Scan": "BitmapScan",
+    "Hash Join": "HashJoin",
+    "Merge Join": "MergeJoin",
+    "Nested Loop": "NestedLoop",
+}
 
-    Args:
-        user_query: SQL query to analyze
-        relations: Database relation information
-        parameters: Dict containing what-if parameters:
-            {
-                "enable_seqscan": bool,
-                "enable_indexscan": bool,
-                "enable_indexonlyscan": bool,
-                "enable_bitmapscan": bool,
-                "enable_hashjoin": bool,
-                "enable_mergejoin": bool,
-                "enable_nestloop": bool,
-                "random_page_cost": float,
-                "cpu_tuple_cost": float,
-                "cpu_index_tuple_cost": float,
-                "cpu_operator_cost": float,
-                "effective_cache_size": str,
-                "work_mem": str
-            }
 
-    Returns:
-        tuple: (error_occurred, result_dict)
-    """
-    query_str = f"EXPLAIN (ANALYZE, COSTS, SETTINGS, VERBOSE, BUFFERS, SUMMARY, FORMAT JSON) {user_query};"
+def what_if(query, relations, questions):
+    print("query", query)
+    print("questions", questions)
+    # Specific Scenario (Tree)
+    if isinstance(questions[0], dict):
+        changed_hints = {}
+        for question in questions:
+            change = scan_join_map_to_plan[question["what_if"]]
+            changed_hints[question["hint"]] = re.sub(
+                r"\b\w+(?=\()", change, question["hint"]
+            )
+        print(changed_hints)
+        # Extract hints between /*+ and */
+        hints_array = re.findall(r"\b\w+\(.*?\)", query)
 
-    try:
-        connection = Database.get_connection()
+        # Step 3: Replace occurrences of keys in hints_array with their values
+        updated_hints_array = [
+            changed_hints[hint] if hint in changed_hints else hint
+            for hint in hints_array
+        ]
+        updated_hints_block = "/*+ " + " ".join(updated_hints_array) + " */"
+        modified_query = re.sub(
+            r"/\*\+.*?\*/", updated_hints_block, query, flags=re.DOTALL
+        )
 
-        with connection.cursor() as cur:
-            # Apply what-if parameters
-            for param in [
-                "seqscan",
-                "indexscan",
-                "indexonlyscan",
-                "bitmapscan",
-                "hashjoin",
-                "mergejoin",
-                "nestloop",
-            ]:
-                value = "on" if parameters.get(f"enable_{param}", True) else "off"
-                cur.execute(f"SET enable_{param} = {value};")
+    # General Scenario
+    elif questions[0] in question_to_planner_option:
+        planner_option = []
+        reset_statements = []
+        for question in questions:
+            planner_option.append(question_to_planner_option[question])
+            reset_statements.append(reset_options[question_to_planner_option[question]])
 
-            # Cost parameters
-            if parameters.get("random_page_cost"):
-                cur.execute(
-                    f"SET random_page_cost = {float(parameters['random_page_cost'])};"
+        planner_option = " ".join(planner_option)
+
+        modified_query = re.sub(r"/\*\+ .*? \*/", f"{planner_option}", query)
+
+        reset_statements = " ".join(reset_statements)
+
+    else:
+        # Specific Scenario (Dropdown)
+        replacements = []
+
+        # Step 1: Identify necessary replacements based on questions
+        for question in questions:
+            for description, (old_hint, new_hint) in change_scan_mapping.items():
+                if description in question:
+                    print(question)
+                    print(description)
+                    # Check if the question specifies a single table or a join (two tables)
+                    table_match = re.search(r"for table (\w+)", question)
+                    join_match = re.search(r"for tables (\w+) and (\w+)", question)
+
+                    if table_match:
+                        # Single table hint replacement
+                        table_name = table_match.group(1)
+                        replacements.append((old_hint, new_hint, table_name, None))
+                    elif join_match:
+                        # Join hint replacement between two tables
+                        table1, table2 = join_match.groups()
+                        replacements.append((old_hint, new_hint, table1, table2))
+        # Step 2: Apply replacements in one pass
+        for old_hint, new_hint, table1, table2 in replacements:
+            if table2 is None:
+                # Single-table scan replacement
+                modified_query = re.sub(
+                    rf"\b{old_hint}\({table1}\)", f"{new_hint}({table1})", query
                 )
-            if parameters.get("cpu_tuple_cost"):
-                cur.execute(
-                    f"SET cpu_tuple_cost = {float(parameters['cpu_tuple_cost'])};"
-                )
-            if parameters.get("cpu_index_tuple_cost"):
-                cur.execute(
-                    f"SET cpu_index_tuple_cost = {float(parameters['cpu_index_tuple_cost'])};"
-                )
-            if parameters.get("cpu_operator_cost"):
-                cur.execute(
-                    f"SET cpu_operator_cost = {float(parameters['cpu_operator_cost'])};"
+                print(modified_query)
+            else:
+                # Join replacement for specific table pairs
+                modified_query = re.sub(
+                    rf"\b{old_hint}\({table1} {table2}\)",
+                    f"{new_hint}({table1} {table2})",
+                    query,
                 )
 
-            # Memory parameters
-            if parameters.get("effective_cache_size"):
-                cur.execute(
-                    f"SET effective_cache_size = '{parameters['effective_cache_size']}';"
-                )
-            if parameters.get("work_mem"):
-                cur.execute(f"SET work_mem = '{parameters['work_mem']}';")
+    result = {"query": modified_query}
+    has_error, response = process_query(modified_query, relations)
+    if has_error:
+        result["error"] = response["msg"]
+    else:
+        json_path = response["plan_data_path"]
+        with open(json_path, "r") as json_file:
+            plan = json.load(json_file)
+        url = visualize_query_plan(plan)
+        image_url = f"{url}"
 
-            try:
-                # Get what-if plan
-                cur.execute(query_str)
-                plan = cur.fetchall()[0][0][0].get("Plan")
-
-                # Save plan
-                plan_json_name = f"plan_whatif_{str(time.time())}.json"
-                with open(plan_json_name, "w") as f:
-                    json.dump(plan, f)
-
-                return False, {
-                    "plan_data_path": plan_json_name,
-                    "summary_data": get_plan_summary(plan),
-                    "natural_explain": get_natural_explanation(plan),
-                    "block_analysis": get_block_analysis(
-                        user_query, relations, connection
-                    ),
-                    "applied_parameters": parameters,
-                }
-
-            except ProgrammingError as e:
-                cur.execute("ROLLBACK;")
-                return True, {"msg": f"Error during what-if analysis: {str(e)}"}
-
-    except OperationalError:
-        return True, {
-            "msg": "Failed to connect to the database! Please ensure that the database is running."
+        result["data"] = {
+            "chartData": response["block_analysis"]["blocks_by_relation"],
+            "tableData": response["block_analysis"]["sql_response"],
+            "haveCtids": response["block_analysis"]["have_ctids"],
+            "isAggregation": response["block_analysis"]["is_aggregation"],
+            "imageUrl": image_url,
+            "additionalDetails": {
+                "naturalExplanation": response["natural_explain"],
+                "totalCost": response["summary_data"]["total_cost"],
+                "totalBlocks": response["summary_data"]["total_blocks"],
+                "totalNodes": response["summary_data"]["nodes_count"],
+            },
         }
-    except Exception as e:
-        return True, {"msg": f"An error has occurred: {repr(e)}"}
+
+    return jsonify(result)

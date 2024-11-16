@@ -2,7 +2,7 @@ import networkx as nx
 import plotly.graph_objects as go
 from networkx.drawing.nx_agraph import graphviz_layout
 import datetime
-from preprocessing import produce_hints, generate_what_if_questions
+from preprocessing import produce_hints
 
 
 class AlternativeQueryPlan:

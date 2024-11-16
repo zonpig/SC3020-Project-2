@@ -3,7 +3,7 @@ import re
 
 from flask import Flask, jsonify, render_template, request, url_for
 
-from interface import visualize_query_plan
+from old_interface import visualize_query_plan
 from preprocessing import (
     get_relation_block,
     process_query,
