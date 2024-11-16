@@ -40,7 +40,7 @@ class Database:
         return cls.connection
 
 
-####
+####################################### Database Functions #######################################
 def get_postgres_schemas():
     try:
         connection = Database.get_connection()
@@ -57,41 +57,74 @@ def get_postgres_schemas():
         return []
 
 
+def get_postgres_tables():
+    """
+    Fetch the list of tables from the specified PostgreSQL schema.
+
+    Args:
+        schema_name (str): The schema name to fetch tables from.
+
+    Returns:
+        list: A list of table names in the given schema.
+    """
+    try:
+        # Replace these values with your PostgreSQL connection details
+        connection = Database.get_connection()
+
+        cursor = connection.cursor()
+
+        # Query to get table names from the specified schema
+        cursor.execute(
+            """
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
+        """
+        )
+
+        # Fetch all table names
+        tables = [row[0].upper() for row in cursor.fetchall()]  # Convert to uppercase
+
+        return tables
+    except Exception as e:
+        print(f"Error fetching tables: {e}")
+        return []
+
+
+def extract_tables_from_query(sql_query: str):
+    # List of valid table names in uppercase
+
+    tables = get_postgres_tables()
+
+    # Find tables in the SQL query
+    valid_tables = [table for table in tables if table in sql_query.upper()]
+
+    tokens = sql_query.split()
+    table_aliases = {}
+
+    for i, token in enumerate(tokens):
+        # Check if the token is a valid table name
+        if token in valid_tables:
+            # Default alias is the table name itself
+            table_aliases[token] = token
+
+            # Check if the next token exists and is not a keyword
+            if i + 1 < len(tokens) and tokens[i + 1] not in {
+                "FROM",
+                "JOIN",
+                "WHERE",
+                "ON",
+                "GROUP",
+                "ORDER",
+                "LIMIT",
+            }:
+                alias = tokens[i + 1].strip(",;")
+                table_aliases[alias] = token
+
+    return table_aliases
+
+
 ####################################### Core Function #######################################
-"""
-Main Function : get_relation_block
-
->> Get relation's block information by relation_name and block_id
-
->> Returns:
-    - error boolean: True if error, False otherwise
-    - result dictionary: contains message if error, else contains block_information
-"""
-
-
-def get_relation_block(relation, block_id):
-    print("here")
-    print(relation)
-    query_blockId = (
-        f"SELECT ctid, * FROM {relation} WHERE (ctid::text::point)[0] = {block_id};"
-    )
-    query_columnName = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{relation}' ORDER BY ORDINAL_POSITION"
-
-    connection = Database.get_connection()
-    with connection.cursor() as cur:
-        try:
-            cur.execute(query_blockId)
-            res = cur.fetchall()
-            cur.execute(query_columnName)
-            cols = cur.fetchall()
-            print(cols)
-            return False, {"block_info": res}, cols
-        except ProgrammingError as e:
-            print(e)
-            cur.execute("ROLLBACK;")
-            return True, {"msg": "Invalid SQL query!"}, None
-
-
 """
 Main Function : process_query
 
@@ -104,6 +137,21 @@ Main Function : process_query
 
 
 def process_query(user_query, relations):
+    """
+    Processes a SQL query by executing it, analyzing the query plan, and generating various insights.
+
+    Args:
+        user_query (str): The SQL query provided by the user.
+        relations (list): A list of relations (tables) involved in the query.
+
+    Returns:
+        error boolean: True if error, False otherwise
+        result dictionary: contains message if error, else contains plan_data, summary_data, natural_explain, block_analysis, specific_what_if, general_what_if, and query_with_hints
+
+    Raises:
+        OperationalError: If there is an issue connecting to the database.
+        Exception: For any other exceptions that occur during processing.
+    """
     result = {
         "plan_data_path": None,
         "summary_data": None,
@@ -200,18 +248,31 @@ def process_query(user_query, relations):
     return False, result
 
 
-####################################### Annotation Functions #######################################
-
-"""
-Function : get_block_analysis
-
->> Produces a summary given a query query and relations.
-    - SQL query response containing the ctids
-    - blocks analysis by relation
-"""
+####################################### Helper Functions #######################################
 
 
+####################################### Block Analysis #######################################
 def get_block_analysis(user_query, relations, connection):
+    """
+    Analyzes a SQL query to determine block usage and other characteristics.
+
+    This function processes a SQL query to extract and execute any SET statements,
+    handle nested SELECT cases, and determine block usage for specified relations.
+    It returns an analysis dictionary containing the SQL response, blocks by relation,
+    and flags indicating the presence of CTIDs and aggregation.
+
+    Parameters:
+    user_query (str): The SQL query to be analyzed.
+    relations (dict): A dictionary where keys are relation names and values are relation details.
+    connection (object): A database connection object.
+
+    Returns:
+    dict: A dictionary containing the analysis results with the following keys:
+        - "sql_response" (dict): Contains the columns, records, and result of the executed query.
+        - "blocks_by_relation" (list): A list of dictionaries with block usage information for each relation.
+        - "have_ctids" (bool): Indicates if CTIDs are present in the query.
+        - "is_aggregation" (bool): Indicates if the query involves aggregation.
+    """
     print("Start Block Analysis ...")
     analysis = {
         "sql_response": None,
@@ -288,8 +349,6 @@ def get_block_analysis(user_query, relations, connection):
         ctid_user_query = hint_plan + " SELECT " + ctids + user_query[7:]
         columns = [f"ctid_of_{relation}" for relation in a_relations] + ["record_data"]
 
-    print(ctid_user_query)
-
     with connection.cursor() as cur:
         try:
             cur.execute(ctid_user_query)
@@ -336,7 +395,7 @@ def is_group_query(user_query):
         "MIN",
         "AVG",
         "COUNT",
-    ]  # additional function for aggregate
+    ]
     for group_func in group_funcs:
         if group_func in user_query.upper():
             return True
@@ -355,17 +414,22 @@ def get_total_blocks(relation, connection):
     return int(query_res[0][0][1:].split(",")[0]) + 1
 
 
-"""
-Function : get_plan_summary
-
->> Produces a summary given a query plan.
-    - Total cost of all nodes
-    - Total blocks of all nodes
-    - Total number of nodes
-"""
-
-
+#######################################Plan Summary#######################################
 def get_plan_summary(plan):
+    """
+    Generate a summary of the given execution plan.
+
+    Args:
+        plan (dict): A dictionary representing the execution plan.
+
+    Returns:
+        dict: A summary of the execution plan containing:
+            - total_cost (float): The total cost of the plan.
+            - total_blocks (dict): A dictionary with:
+                - hit_blocks (int): The number of shared hit blocks.
+                - read_blocks (int): The number of shared read blocks.
+            - nodes_count (int): The total number of nodes in the plan.
+    """
     summary = {
         "total_cost": plan["Total Cost"],
         "total_blocks": {
@@ -384,14 +448,23 @@ def get_plan_summary(plan):
     return summary
 
 
-"""
-Function : get_natural_explain
-
->> Get the natural explanation given a query plan.
-"""
-
-
+####################################### Natural Explanation #######################################
 def get_natural_explanation(plan):
+    """
+    Generates a natural language explanation for a given plan.
+
+    This function takes a hierarchical plan structure and produces a list of natural language explanations
+    for each node in the plan. The explanations are generated in a bottom-up manner, starting from the
+    leaf nodes and moving up to the root node.
+
+    Args:
+        plan (dict): A dictionary representing the hierarchical plan. Each node in the plan may contain
+                     a "Plans" key, which is a list of child nodes.
+
+    Returns:
+        list: A list of natural language explanations for each node in the plan, ordered from the leaf
+              nodes to the root node.
+    """
     natural_explanation = []
     q = deque([plan])
     while q:
@@ -684,8 +757,6 @@ def values_scan_natural_explain(plan):
 
 
 ####################################### Hint Function #######################################
-
-
 def get_hints(qep):
     hints = []
     q = deque([qep])
@@ -742,15 +813,12 @@ def generate_what_if_questions(hints):
         "HashJoin": hash_join_specific_question,
     }
 
-    for idx, operation_table in enumerate(operation_tables):
+    for operation_table in operation_tables:
         operation_type, tables = operation_table
         if operation_type in operation_type_to_function.keys():
             what_if_specific_questions.extend(
                 operation_type_to_function[operation_type](tables)
             )
-
-        else:
-            continue
 
     for operation_type in operation_types:
         if operation_type == "BitmapScan":
@@ -773,21 +841,18 @@ def generate_what_if_questions(hints):
 def bitmap_scan_hint(plan):
     table = plan["Relation Name"]
     hint = f"BitmapScan({table})"
-    print(hint)
     return hint
 
 
 def index_scan_hint(plan):
     table = plan["Relation Name"]
     hint = f"IndexScan({table})"
-    print(hint)
     return hint
 
 
 def seq_scan_hint(plan):
     table = plan["Relation Name"]
     hint = f"SeqScan({table})"
-    print(hint)
     return hint
 
 
@@ -795,21 +860,18 @@ def seq_scan_hint(plan):
 def nested_loop_hint(plan):
     tables = [re.findall(r"(\w+)\.", item)[0] for item in plan["Output"]]
     hint = f"NestLoop({' '.join(tables)})"
-    print(hint)
     return hint
 
 
 def hash_join_hint(plan):
     tables = re.findall(r"(\w+)\.", plan["Hash Cond"])
     hint = f"HashJoin({' '.join(tables)})"
-    print(hint)
     return hint
 
 
 def merge_join_hint(plan):
     tables = re.findall(r"(\w+)\.", plan["Merge Cond"])
     hint = f"MergeJoin({' '.join(tables)})"
-    print(hint)
     return hint
 
 
@@ -894,14 +956,3 @@ def hash_join_general_question():
 
 def merge_join_general_question():
     return "What happens if I don't use Merge Join at all?"
-
-
-if __name__ == "__main__":
-    test_query = "SELECT SUM(ps_supplycost * ps_availqty) AS value FROM partsupp, supplier, nation WHERE ps_suppkey = s_suppkey AND s_nationkey = n_nationkey AND n_name = 'GERMANY'"
-    has_error, result = process_query(test_query, ["partsupp", "supplier", "nation"])
-    # has_error, result = process_query("SELECT customer.c_name, nation.n_name FROM customer, nation WHERE customer.c_nationkey = nation.n_nationkey and customer.c_acctbal <= 5 and nation.n_nationkey <= 5", ['customer', 'nation'])
-    # has_error, result = get_relation_block("customer", 0)
-    if has_error:
-        print(result["msg"])
-    else:
-        print(result)

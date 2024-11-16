@@ -1,6 +1,6 @@
 import re
 from preprocessing import process_query
-from interactive_interface import visualize_query_plan
+from interface import visualize_query_plan
 from flask import jsonify
 import json
 
@@ -103,7 +103,6 @@ change_scan_mapping = {
     ),
 }
 
-
 scan_join_map_to_plan = {
     "Seq Scan": "SeqScan",
     "Index Scan": "IndexScan",
@@ -115,8 +114,6 @@ scan_join_map_to_plan = {
 
 
 def what_if(query, relations, questions):
-    print("query", query)
-    print("questions", questions)
     # Specific Scenario (Tree)
     if isinstance(questions[0], dict):
         changed_hints = {}
@@ -125,7 +122,6 @@ def what_if(query, relations, questions):
             changed_hints[question["hint"]] = re.sub(
                 r"\b\w+(?=\()", change, question["hint"]
             )
-        print(changed_hints)
         # Extract hints between /*+ and */
         hints_array = re.findall(r"\b\w+\(.*?\)", query)
 
@@ -161,8 +157,6 @@ def what_if(query, relations, questions):
         for question in questions:
             for description, (old_hint, new_hint) in change_scan_mapping.items():
                 if description in question:
-                    print(question)
-                    print(description)
                     # Check if the question specifies a single table or a join (two tables)
                     table_match = re.search(r"for table (\w+)", question)
                     join_match = re.search(r"for tables (\w+) and (\w+)", question)
@@ -182,7 +176,6 @@ def what_if(query, relations, questions):
                 modified_query = re.sub(
                     rf"\b{old_hint}\({table1}\)", f"{new_hint}({table1})", query
                 )
-                print(modified_query)
             else:
                 # Join replacement for specific table pairs
                 modified_query = re.sub(
