@@ -136,7 +136,7 @@ Main Function : process_query
 """
 
 
-def process_query(user_query, relations):
+def process_query(user_query):
     """
     Processes a SQL query by executing it, analyzing the query plan, and generating various insights.
 
@@ -156,7 +156,6 @@ def process_query(user_query, relations):
         "plan_data_path": None,
         "summary_data": None,
         "natural_explain": None,
-        "block_analysis": None,
         "specific_what_if": None,
         "general_what_if": None,
         "query_with_hints": None,
@@ -167,16 +166,19 @@ def process_query(user_query, relations):
 
         # Check for SET statements
         set_statements = []
-        main_query = user_query
-        if "SET" in user_query.upper():
-            queries = user_query.split(";")
-            for query in queries:
-                query = query.strip()
-                if query.upper().startswith("SET"):
-                    set_statements.append(query)
-                else:
-                    main_query = query
+        main_query = None  # Initialize as None to avoid overwriting
 
+        # Split the user query by semicolon
+        queries = user_query.split(";")
+
+        for query in queries:
+            query = query.strip()
+            if not query:  # Skip empty queries resulting from split
+                continue
+            if query.upper().startswith("SET"):
+                set_statements.append(query)
+            else:
+                main_query = query  # Assign the last non-SET query as main_query
         # Execute SET statements
         with connection.cursor() as cur:
             for set_statement in set_statements:
@@ -191,6 +193,7 @@ def process_query(user_query, relations):
         # Get base query plan
         with connection.cursor() as cur:
             try:
+                print(f"Executing main query: {main_query}")
                 # Execute query and get results
                 explain_query_str = f"EXPLAIN (ANALYZE, COSTS, SETTINGS, VERBOSE, BUFFERS, SUMMARY, FORMAT JSON) {main_query};"
                 cur.execute(explain_query_str)
@@ -215,14 +218,16 @@ def process_query(user_query, relations):
         plan_json_name = "static/plan" + str(time.time()) + ".json"
         with open(plan_json_name, "w") as f:
             json.dump(plan, f)
-
+        print("saved the QEP!")
         result["plan_data_path"] = plan_json_name
+        print("saved the QEP!123")
         # parse results for summary for plan
         result["summary_data"] = get_plan_summary(plan)
+
+        print("asdasdas")
         # get natural explanation for plan
+
         result["natural_explain"] = get_natural_explanation(plan)
-        # get block analysis for query
-        result["block_analysis"] = get_block_analysis(user_query, relations, connection)
         # get hints for query
         result["hints"] = get_hints(plan)
         hints = " ".join(result["hints"])
@@ -234,9 +239,12 @@ def process_query(user_query, relations):
             # Add hints at the beginning of the query if not present
             modified_query = f"/*+ {hints} */ {user_query}"
         result["query_with_hints"] = modified_query
-        specific_what_if, general_what_if = generate_what_if_questions(result["hints"])
-        result["specific_what_if"] = specific_what_if
-        result["general_what_if"] = general_what_if
+        if not set_statements:
+            specific_what_if, general_what_if = generate_what_if_questions(
+                result["hints"]
+            )
+            result["specific_what_if"] = specific_what_if
+            result["general_what_if"] = general_what_if
 
     except OperationalError:
         return True, {
@@ -249,169 +257,6 @@ def process_query(user_query, relations):
 
 
 ####################################### Helper Functions #######################################
-
-
-####################################### Block Analysis #######################################
-def get_block_analysis(user_query, relations, connection):
-    """
-    Analyzes a SQL query to determine block usage and other characteristics.
-
-    This function processes a SQL query to extract and execute any SET statements,
-    handle nested SELECT cases, and determine block usage for specified relations.
-    It returns an analysis dictionary containing the SQL response, blocks by relation,
-    and flags indicating the presence of CTIDs and aggregation.
-
-    Parameters:
-    user_query (str): The SQL query to be analyzed.
-    relations (dict): A dictionary where keys are relation names and values are relation details.
-    connection (object): A database connection object.
-
-    Returns:
-    dict: A dictionary containing the analysis results with the following keys:
-        - "sql_response" (dict): Contains the columns, records, and result of the executed query.
-        - "blocks_by_relation" (list): A list of dictionaries with block usage information for each relation.
-        - "have_ctids" (bool): Indicates if CTIDs are present in the query.
-        - "is_aggregation" (bool): Indicates if the query involves aggregation.
-    """
-    print("Start Block Analysis ...")
-    analysis = {
-        "sql_response": None,
-        "blocks_by_relation": [],
-        "have_ctids": False,
-        "is_aggregation": False,
-    }
-
-    a_relations = list(relations.keys())
-
-    # Extract hint plan if present
-    hint_plan = ""
-    if user_query.strip().startswith("/*+"):
-        end_hint = user_query.find("*/") + 2
-        hint_plan = user_query[:end_hint]
-        user_query = user_query[end_hint:].strip()
-
-    # Check for SET statements
-    set_statements = []
-    main_query = user_query
-    if "SET" in user_query.upper():
-        queries = user_query.split(";")
-        for query in queries:
-            query = query.strip()
-            if query.upper().startswith("SET"):
-                set_statements.append(query)
-            else:
-                main_query = query
-
-    # Execute SET statements
-    with connection.cursor() as cur:
-        for set_statement in set_statements:
-            try:
-                print(f"Executing SET statement: {set_statement}")
-                cur.execute(set_statement)
-            except ProgrammingError as e:
-                print(e)
-                cur.execute("ROLLBACK;")
-                return None
-
-    user_query = main_query
-
-    if user_query.upper().count("FROM (") >= 1:
-        print("Detect nested SELECT cases.")
-        with connection.cursor() as cur:
-            try:
-                cur.execute(hint_plan + " " + user_query)
-                result = cur.fetchall()
-            except ProgrammingError as e:
-                print(e)
-                cur.execute("ROLLBACK;")
-                return None
-        print(">>> " + hint_plan + " " + user_query)
-        print(result)
-        analysis["sql_response"] = {"col": None, "record": None, "result": result}
-        analysis["have_ctids"] = False
-        return analysis
-
-    ctids = ""
-    for relation in a_relations:
-        ctids = ctids + f"{relation}.ctid, "
-
-    if is_group_query(user_query):
-        from_pos = user_query.upper().find("FROM") - 1
-        ctid_user_query = hint_plan + " SELECT " + ctids[:-2]
-        if "GROUP BY" in user_query.upper():
-            group_pos = user_query.upper().find("GROUP BY") - 1
-            ctid_user_query = ctid_user_query + user_query[from_pos:group_pos]
-        else:
-            ctid_user_query = ctid_user_query + user_query[from_pos:]
-        analysis["is_aggregation"] = True
-        columns = user_query[7:from_pos].split(", ")
-    else:
-        ctid_user_query = hint_plan + " SELECT " + ctids + user_query[7:]
-        columns = [f"ctid_of_{relation}" for relation in a_relations] + ["record_data"]
-
-    with connection.cursor() as cur:
-        try:
-            cur.execute(ctid_user_query)
-            ctid_result = cur.fetchall()
-            cur.execute(hint_plan + " " + user_query)
-            result = cur.fetchall()
-        except ProgrammingError as e:
-            print(e)
-            cur.execute("ROLLBACK;")
-            return None
-
-    analysis["sql_response"] = {"col": columns, "record": ctid_result, "result": result}
-    analysis["have_ctids"] = True
-
-    blocks = {}
-    for relation in a_relations:
-        blocks[relation] = set()
-
-    for item in ctid_result:
-        for id, relation in enumerate(a_relations):
-            if item[id]:
-                blocks[relation].add(int(item[id][1:].split(",")[0]))
-
-    for relation in a_relations:
-        analysis["blocks_by_relation"].append(
-            {
-                "relation_name": relation,
-                "used_blocks": {
-                    "number": len(blocks[relation]),
-                    "indexes": sorted(blocks[relation]),
-                },
-                "total_blocks": get_total_blocks(relations[relation], connection),
-            }
-        )
-
-    print("Finished Block Analysis!")
-    return analysis
-
-
-def is_group_query(user_query):
-    group_funcs = [
-        "SUM",
-        "MAX",
-        "MIN",
-        "AVG",
-        "COUNT",
-    ]
-    for group_func in group_funcs:
-        if group_func in user_query.upper():
-            return True
-    return False
-
-
-def get_total_blocks(relation, connection):
-    with connection.cursor() as cur:
-        try:
-            cur.execute(f"SELECT MAX(ctid) FROM {relation};")
-            query_res = cur.fetchall()
-        except ProgrammingError as e:
-            print(e)
-            cur.execute("ROLLBACK;")
-            return None
-    return int(query_res[0][0][1:].split(",")[0]) + 1
 
 
 #######################################Plan Summary#######################################

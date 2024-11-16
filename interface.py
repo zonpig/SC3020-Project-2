@@ -7,12 +7,6 @@ import networkx as nx
 import plotly.graph_objects as go
 from bs4 import BeautifulSoup
 from dash import (
-    ALL,
-    Dash,
-    Input,
-    Output,
-    State,
-    ctx,
     dcc,
     html,
 )
@@ -995,7 +989,7 @@ def run_query(query, relations):
 
         result = {"query": query}
 
-        has_error, response = process_query(query, relations)
+        has_error, response = process_query(query)
         if has_error:
             result["error"] = response["msg"]
         else:
@@ -1009,10 +1003,6 @@ def run_query(query, relations):
             image_url = f"{url}"
 
             result["data"] = {
-                "chartData": response["block_analysis"]["blocks_by_relation"],
-                "tableData": response["block_analysis"]["sql_response"],
-                "haveCtids": response["block_analysis"]["have_ctids"],
-                "isAggregation": response["block_analysis"]["is_aggregation"],
                 "imageUrl": image_url,
                 "hints": response["hints"],
                 "modifiedQuery": response["query_with_hints"],

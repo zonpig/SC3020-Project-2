@@ -185,7 +185,7 @@ def what_if(query, relations, questions):
                 )
 
     result = {"query": modified_query}
-    has_error, response = process_query(modified_query, relations)
+    has_error, response = process_query(modified_query)
     if has_error:
         result["error"] = response["msg"]
     else:
@@ -196,10 +196,6 @@ def what_if(query, relations, questions):
         image_url = f"{url}"
 
         result["data"] = {
-            "chartData": response["block_analysis"]["blocks_by_relation"],
-            "tableData": response["block_analysis"]["sql_response"],
-            "haveCtids": response["block_analysis"]["have_ctids"],
-            "isAggregation": response["block_analysis"]["is_aggregation"],
             "imageUrl": image_url,
             "additionalDetails": {
                 "naturalExplanation": response["natural_explain"],
