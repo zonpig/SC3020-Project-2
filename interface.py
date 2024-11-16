@@ -22,7 +22,8 @@ tab_aqp_gen = html.Div(
             [
                 dbc.Card(
                     [
-                        html.Div("Modified Query "),
+                        html.Div("Modified Query ",
+                                 style={'font-weight': 'bold'},),
                         dbc.CardBody(children="", id="general-query"),
                     ]
                 )
@@ -193,7 +194,8 @@ def create_layout():
                                                                             dbc.Card(
                                                                                 [
                                                                                     html.Div(
-                                                                                        "Original Query with Hints"
+                                                                                        "Original Query with Hints",
+                                                                                        style={'font-weight': 'bold'}
                                                                                     ),
                                                                                     dbc.CardBody(
                                                                                         children="",
