@@ -249,10 +249,8 @@ def draw_graph(n1, children):
                     query = child["props"]["children"][0]["props"]["value"]
                     n_query = re.sub(r"\n|\t", " ", query).strip()
                     print(f"the query is : {n_query.upper()}")
-                    tables_extracted = extract_tables_from_query(n_query.upper())
-                    print(tables_extracted)
                     query_with_hints, specific_what_if, general_what_if, response = (
-                        run_query(n_query, tables_extracted)
+                        run_query(n_query)
                     )
                     query_with_hints_global = query_with_hints
                     print(query_with_hints_global)
@@ -448,10 +446,7 @@ def generate_aqp_specific(tab, children):
                     query = child["props"]["children"][0]["props"]["value"]
                     n_query = re.sub(r"\n|\t", " ", query).strip()
                     print(f"The query is: {n_query.upper()}")
-                    tables_extracted = extract_tables_from_query(n_query.upper())
-                    response = what_if(
-                        query_with_hints_global, tables_extracted, selected_options
-                    )
+                    response = what_if(query_with_hints_global, selected_options)
                     results = response.get_json()  # Extract JSON data from the response
         else:
             print(f"Starting AQP generation with options: {selections}")
@@ -461,11 +456,8 @@ def generate_aqp_specific(tab, children):
                     query = child["props"]["children"][0]["props"]["value"]
                     n_query = re.sub(r"\n|\t", " ", query).strip()
                     print(f"The query is: {n_query.upper()}")
-                    tables_extracted = extract_tables_from_query(n_query.upper())
                     print(f"Selections: {selections}")
-                    response = what_if(
-                        query_with_hints_global, tables_extracted, selections
-                    )
+                    response = what_if(query_with_hints_global, selections)
                     results = response.get_json()  # Extract JSON data from the response
         if "error" in results:
             print(f"Error: {results['error']}")
@@ -511,10 +503,7 @@ def generate_aqp_general(tab, children):
                 query = child["props"]["children"][0]["props"]["value"]
                 n_query = re.sub(r"\n|\t", " ", query).strip()
                 print(f"The query is: {n_query.upper()}")
-                tables_extracted = extract_tables_from_query(n_query.upper())
-                response = what_if(
-                    query_with_hints_global, tables_extracted, selected_options
-                )
+                response = what_if(query_with_hints_global, selected_options)
                 results = response.get_json()  # Extract JSON data from the response
                 print(results["query"])
                 if "error" in results:

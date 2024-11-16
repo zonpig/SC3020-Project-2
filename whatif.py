@@ -113,7 +113,7 @@ scan_join_map_to_plan = {
 }
 
 
-def what_if(query, relations, questions):
+def what_if(query, questions):
     # Specific Scenario (Tree)
     if isinstance(questions[0], dict):
         changed_hints = {}

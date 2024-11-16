@@ -985,8 +985,10 @@ def convert_html_to_dash(html_input):
         return parse_html(html_input)
 
 
-def run_query(query, relations):
-    if relations and query:
+def run_query(
+    query,
+):
+    if query:
         query = re.sub(r"\s+", " ", query)
 
         result = {"query": query}
