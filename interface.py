@@ -619,7 +619,7 @@ def build_graph(G, node, parent=None):
     row_size = node.get("Actual Rows", "N/A")
     changed = node.get("changed", False)
 
-    label = f"{node['Node Type']}<br>Node ID: {node_id}<br>Cost: {total_cost}<br>Buffer: {buffer}<br>Rows: {row_size}"
+    label = f"{node_id}<br>Cost: {total_cost}<br>Buffer: {buffer}<br>Rows: {row_size}"
     G.add_node(node_id, label=label, type=node["Node Type"], data=node, changed=changed)
 
     if parent:
@@ -651,7 +651,7 @@ def visualize_query_plan(plan):
         x=edge_x,
         y=edge_y,
         line=dict(width=1, color="#888"),
-        hoverinfo="none",
+        hoverinfo="none",  
         mode="lines",
     )
 
@@ -659,6 +659,7 @@ def visualize_query_plan(plan):
     node_y = []
     node_details = []
     node_labels = []
+    node_hover_texts = []  
     node_colors = []
 
     for node in G.nodes():
@@ -678,6 +679,19 @@ def visualize_query_plan(plan):
         )
         node_type = details.get("Node Type", "N/A")
 
+        # Create detailed hover text
+        hover_text = (
+            f"Node Type: {node_type}<br>"
+            f"Node ID: {node}<br>"
+            f"Total Cost: {details.get('Total Cost', 'N/A')}<br>"
+            f"Buffer: {buffer_sum}<br>"
+            f"Rows: {details.get('Actual Rows', 'N/A')}<br>"
+        )
+        node_hover_texts.append(hover_text)
+
+        display_label = f"{node_type}<br>Cost: {details.get('Total Cost', 'N/A')}"
+        node_labels.append(display_label)
+
         # Set what if options based on node type
         if node_type in ["Hash Join", "Merge Join", "Nested Loop"]:
             options = ["Hash Join", "Merge Join", "Nested Loop"]
@@ -689,7 +703,7 @@ def visualize_query_plan(plan):
         hint = produce_hints(details) if produce_hints(details) else None
 
         node_info = {
-            "type": details.get("Node Type", "N/A"),
+            "type": node_type,
             "cost": details.get("Total Cost", "N/A"),
             "rows": details.get("Actual Rows", "N/A"),
             "buffer": buffer_sum,
@@ -699,7 +713,6 @@ def visualize_query_plan(plan):
             "hint": hint,
         }
         node_details.append(node_info)
-        node_labels.append(G.nodes[node]["label"])
 
         # Set node color based on the "changed" field
         if G.nodes[node]["changed"]:
@@ -718,9 +731,11 @@ def visualize_query_plan(plan):
             symbol="circle",
         ),
         text=node_labels,
+        hovertext=node_hover_texts,  # Added separate hover text
         hoverinfo="text",
         textposition="bottom center",
         customdata=node_details,
+        textfont=dict(size=12),
     )
 
     fig = go.Figure(data=[edge_trace, node_trace])
@@ -823,7 +838,6 @@ def visualize_query_plan(plan):
             
             function closePopup() {{
                 popup.style.display = 'none';
-                // Remove the click listener when popup is closed
                 if (clickListener) {{
                     document.removeEventListener('click', clickListener);
                     clickListener = null;
@@ -839,7 +853,6 @@ def visualize_query_plan(plan):
             function showPopup(x, y) {{
                 popup.style.display = 'block';
                 
-                // Position the popup
                 var rect = popup.getBoundingClientRect();
                 if (x + rect.width > window.innerWidth) {{
                     x = window.innerWidth - rect.width - 10;
@@ -851,10 +864,8 @@ def visualize_query_plan(plan):
                 popup.style.left = x + 'px';
                 popup.style.top = y + 'px';
                 
-                // Add click listener only when popup is shown
                 if (!clickListener) {{
                     clickListener = handleClickOutside;
-                    // Use setTimeout to avoid immediate closure
                     setTimeout(() => {{
                         document.addEventListener('click', clickListener);
                     }}, 0);
@@ -889,11 +900,10 @@ def visualize_query_plan(plan):
                     selectedNodeId = currentNode.node_id;
                     selectedHint = currentNode.hint;
                     
-                    console.log('Node clicked:', selectedNodeId);
-                    
                     var details = document.getElementById('details');
                     details.innerHTML = `
                         <strong>Node Type:</strong> ${{currentNode.type}}<br>
+                        <strong>Node ID:</strong> ${{currentNode.node_id}}<br>
                         <strong>Total Cost:</strong> ${{currentNode.cost}}<br>
                         <strong>Rows:</strong> ${{currentNode.rows}}<br>
                         <strong>Buffer:</strong> ${{currentNode.buffer}}
@@ -901,7 +911,6 @@ def visualize_query_plan(plan):
                     
                     generateOptionButtons();
                     showPopup(data.event.pageX + 10, data.event.pageY + 10);
-                    // Stop propagation to prevent immediate popup closure
                     data.event.stopPropagation();
                 }});
             }});
@@ -917,14 +926,7 @@ def visualize_query_plan(plan):
                         Node: ${{selectedNode}}<br>
                         Node ID: ${{selectedNodeId}} <br>
                         What-if: ${{selectedOption}}
-                        
                     `;
-                    
-                    console.log('Selected:', {{
-                        node_type: selectedNode,
-                        node_id: selectedNodeId,
-                        what_if: selectedOption
-                    }});
                     
                     fetch('/nodeclick', {{
                         method: 'POST',
@@ -943,7 +945,6 @@ def visualize_query_plan(plan):
                 }}
             }}
 
-            // Prevent popup closure when clicking inside it
             popup.addEventListener('click', function(e) {{
                 e.stopPropagation();
             }});
@@ -959,8 +960,6 @@ def visualize_query_plan(plan):
     # Save the HTML content to a file with the timestamped filename
     with open(filename, "w", encoding="utf-8") as f:
         f.write(html_content)
-
-    print(f"HTML file saved as {filename}")
 
     return filename
 
