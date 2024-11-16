@@ -683,7 +683,7 @@ def visualize_query_plan(plan):
         )
         node_hover_texts.append(hover_text)
 
-        display_label = f"{node_type}<br>Cost: {details.get('Total Cost', 'N/A')}"
+        display_label = f"{node}<br>Cost: {details.get('Total Cost', 'N/A')}"
         node_labels.append(display_label)
 
         # Set what if options based on node type
