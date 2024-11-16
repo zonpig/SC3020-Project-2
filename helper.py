@@ -1,10 +1,12 @@
 import json
 import re
-from preprocessing import process_query
-from interactive_interface import visualize_query_plan
-from flask import jsonify
+
 from bs4 import BeautifulSoup
 from dash import html
+from flask import jsonify
+
+from interactive_interface import visualize_query_plan
+from preprocessing import Database, process_query
 
 
 def convert_html_to_dash(html_input):
@@ -32,18 +34,47 @@ def convert_html_to_dash(html_input):
         return parse_html(html_input)
 
 
+def get_postgres_tables():
+    """
+    Fetch the list of tables from the specified PostgreSQL schema.
+
+    Args:
+        schema_name (str): The schema name to fetch tables from.
+
+    Returns:
+        list: A list of table names in the given schema.
+    """
+    try:
+        # Replace these values with your PostgreSQL connection details
+        connection = Database.get_connection()
+
+        cursor = connection.cursor()
+
+        # Query to get table names from the specified schema
+        cursor.execute(
+            """
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
+        """
+        )
+
+        # Fetch all table names
+        tables = [row[0].upper() for row in cursor.fetchall()]  # Convert to uppercase
+
+        return tables
+    except Exception as e:
+        print(f"Error fetching tables: {e}")
+        return []
+
+
 def extract_tables_from_query(sql_query: str):
     # List of valid table names in uppercase
-    valid_tables = [
-        "REGION",
-        "NATION",
-        "PART",
-        "SUPPLIER",
-        "PARTSUPP",
-        "CUSTOMER",
-        "ORDERS",
-        "LINEITEM",
-    ]
+
+    tables = get_postgres_tables()
+
+    # Find tables in the SQL query
+    valid_tables = [table for table in tables if table in sql_query.upper()]
 
     tokens = sql_query.split()
     table_aliases = {}
