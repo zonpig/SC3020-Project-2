@@ -1,11 +1,13 @@
 # Code for reading inputs and any preprocessing to make your algorithm work
-from collections import deque
-import logging
 import json
-import time
-import psycopg2
-from psycopg2 import ProgrammingError, OperationalError
+import logging
 import re
+import time
+from collections import deque
+from typing import Tuple
+
+import psycopg2
+from psycopg2 import OperationalError, ProgrammingError
 
 
 ####################################### Database Connection #######################################
@@ -136,14 +138,12 @@ Main Function : process_query
 """
 
 
-def process_query(user_query):
+def process_query(user_query: str) -> Tuple[bool, dict]:
     """
     Processes a SQL query by executing it, analyzing the query plan, and generating various insights.
 
     Args:
         user_query (str): The SQL query provided by the user.
-        relations (list): A list of relations (tables) involved in the query.
-
     Returns:
         error boolean: True if error, False otherwise
         result dictionary: contains message if error, else contains plan_data, summary_data, natural_explain, block_analysis, specific_what_if, general_what_if, and query_with_hints
@@ -183,7 +183,6 @@ def process_query(user_query):
         with connection.cursor() as cur:
             for set_statement in set_statements:
                 try:
-                    print(f"Executing SET statement: {set_statement}")
                     cur.execute(set_statement)
                 except ProgrammingError as e:
                     print(e)
@@ -203,8 +202,6 @@ def process_query(user_query):
                 cur.execute("ROLLBACK;")
                 return True, {"msg": "Invalid SQL query!"}
 
-        print("fetched the QEP!")
-
         # logging
         logging.basicConfig(
             filename="app.log",
@@ -215,29 +212,19 @@ def process_query(user_query):
         logging.warning(f"Plan : {plan}")
 
         # save plan
-        plan_json_name = "static/plan" + str(time.time()) + ".json"
+        plan_json_name = f"static/plan_{int(time.time())}_{hash(main_query)}.json"
         with open(plan_json_name, "w") as f:
             json.dump(plan, f)
-        print("saved the QEP!")
         result["plan_data_path"] = plan_json_name
-        print("saved the QEP!123")
         # parse results for summary for plan
         result["summary_data"] = get_plan_summary(plan)
-
-        print("asdasdas")
         # get natural explanation for plan
-
         result["natural_explain"] = get_natural_explanation(plan)
         # get hints for query
         result["hints"] = get_hints(plan)
         hints = " ".join(result["hints"])
-        # Check if the query already contains "/*+ */"
-        if re.search(r"/\*\+ .*? \*/", user_query):
-            # Replace existing hints
-            modified_query = re.sub(r"/\*\+ .*? \*/", f"/*+ {hints} */", user_query)
-        else:
-            # Add hints at the beginning of the query if not present
-            modified_query = f"/*+ {hints} */ {user_query}"
+        # Add hints at the beginning of the query
+        modified_query = f"/*+ {hints} */ {user_query}"
         result["query_with_hints"] = modified_query
         if not set_statements:
             specific_what_if, general_what_if = generate_what_if_questions(
@@ -619,7 +606,7 @@ def produce_hints(plan):
     node_type = plan["Node Type"]
 
     node_type_to_function = {
-        "Bitmap Heap Scan": bitmap_scan_hint,  # Actually Bitmap
+        "Bitmap Heap Scan": bitmap_scan_hint,
         "Hash Join": hash_join_hint,
         "Index Scan": index_scan_hint,
         "Merge Join": merge_join_hint,
@@ -649,8 +636,8 @@ def generate_what_if_questions(hints):
         # Append each operation as a tuple to the list
         operation_tables.append((operation_type, tables))
 
-    operation_type_to_function = {
-        "BitmapScan": bitmap_scan_specific_question,  # Actually Bitmap
+    operation_type_to_specific_function = {
+        "BitmapScan": bitmap_scan_specific_question,
         "IndexScan": index_scan_specific_question,
         "SeqScan": seq_scan_specific_question,
         "NestLoop": nested_loop_specific_question,
@@ -660,24 +647,24 @@ def generate_what_if_questions(hints):
 
     for operation_table in operation_tables:
         operation_type, tables = operation_table
-        if operation_type in operation_type_to_function.keys():
+        if operation_type in operation_type_to_specific_function.keys():
             what_if_specific_questions.extend(
-                operation_type_to_function[operation_type](tables)
+                operation_type_to_specific_function[operation_type](tables)
             )
 
+    operation_type_to_general_function = {
+        "BitmapScan": bitmap_scan_general_question,
+        "IndexScan": index_scan_general_question,
+        "SeqScan": seq_scan_general_question,
+        "NestLoop": nested_loop_general_question,
+        "MergeJoin": merge_join_general_question,
+        "HashJoin": hash_join_general_question,
+    }
+
     for operation_type in operation_types:
-        if operation_type == "BitmapScan":
-            what_if_general_questions.append(bitmap_scan_general_question())
-        elif operation_type == "IndexScan":
-            what_if_general_questions.append(index_scan_general_question())
-        elif operation_type == "SeqScan":
-            what_if_general_questions.append(seq_scan_general_question())
-        elif operation_type == "NestLoop":
-            what_if_general_questions.append(nested_loop_general_question())
-        elif operation_type == "MergeJoin":
-            what_if_general_questions.append(merge_join_general_question())
-        elif operation_type == "HashJoin":
-            what_if_general_questions.append(hash_join_general_question())
+        what_if_general_questions.append(
+            operation_type_to_general_function[operation_type]()
+        )
 
     return what_if_specific_questions, what_if_general_questions
 

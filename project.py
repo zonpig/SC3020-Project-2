@@ -21,7 +21,7 @@ from interface import (
     update_costs,
     create_layout,
 )
-from preprocessing import Database, extract_tables_from_query, get_postgres_schemas
+from preprocessing import Database, get_postgres_schemas
 from whatif import what_if
 
 server = Flask(__name__)
@@ -74,7 +74,6 @@ def load_schemas_and_queries(_):
         queries_list = []
         if default_value == "TPC-H":
             for idx, query in enumerate(example_queries):
-                print(f"Adding query at index {idx}: {query}")  # Debugging
                 queries_list.append(
                     dbc.ListGroupItem(
                         [

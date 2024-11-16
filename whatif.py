@@ -5,7 +5,7 @@ from flask import jsonify
 import json
 
 question_to_planner_option = {
-    "What happens if I don't use BitMap Scan at all?": "SET enable_bitmapscan to off;",  # Actually Bitmap
+    "What happens if I don't use BitMap Scan at all?": "SET enable_bitmapscan to off;",
     "What happens if I don't use Index Scan at all?": "SET enable_indexscan to off;",
     "What happens if I don't use Sequential Scan at all?": "SET enable_seqscan to off;",
     "What happens if I don't use Nested Loop Join at all?": "SET enable_nestloop to off;",
@@ -113,7 +113,24 @@ scan_join_map_to_plan = {
 }
 
 
-def what_if(query, questions):
+def what_if(query: str, questions: list):
+    """
+    Processes a SQL query with hypothetical scenarios and returns the modified query along with visualization data.
+
+    Args:
+        query (str): The original SQL query.
+        questions (list): A list of questions or scenarios to apply to the query. Each question can be a dictionary
+                          specifying a specific scenario or a string indicating a general scenario.
+
+    Returns:
+        flask.Response: A JSON response containing the modified query and, if successful, additional data including
+                        a visualization URL, natural explanation, total cost, total blocks, and total nodes. If an
+                        error occurs, the response will include an error message.
+
+    Raises:
+        KeyError: If a question is not found in the predefined mappings.
+        IOError: If there is an issue reading the JSON file containing the query plan.
+    """
     # Specific Scenario (Tree)
     if isinstance(questions[0], dict):
         changed_hints = {}
@@ -125,7 +142,7 @@ def what_if(query, questions):
         # Extract hints between /*+ and */
         hints_array = re.findall(r"\b\w+\(.*?\)", query)
 
-        # Step 3: Replace occurrences of keys in hints_array with their values
+        # Replace occurrences of keys in hints_array with their values
         updated_hints_array = [
             changed_hints[hint] if hint in changed_hints else hint
             for hint in hints_array
@@ -138,16 +155,12 @@ def what_if(query, questions):
     # General Scenario
     elif questions[0] in question_to_planner_option:
         planner_option = []
-        reset_statements = []
         for question in questions:
             planner_option.append(question_to_planner_option[question])
-            reset_statements.append(reset_options[question_to_planner_option[question]])
 
-        planner_option = " ".join(planner_option)
+        planner_options = " ".join(planner_option)
 
-        modified_query = re.sub(r"/\*\+ .*? \*/", f"{planner_option}", query)
-
-        reset_statements = " ".join(reset_statements)
+        modified_query = re.sub(r"/\*\+ .*? \*/", f"{planner_options}", query)
 
     else:
         # Specific Scenario (Dropdown)

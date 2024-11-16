@@ -11,4 +11,7 @@ COPY --from=0 /usr/pgsql-17/share/extension/pg_hint_plan--1.6.1--1.7.0.sql /usr/
 COPY --from=0 /usr/pgsql-17/lib/pg_hint_plan.so /usr/pgsql-17/lib/pg_hint_plan.so /usr/lib/postgresql/17/lib/
 ENV  POSTGRES_USER=postgres
 ENV  POSTGRES_PASSWORD=password
+ENV POSTGRES_DB=TPC-H
+
+# Initialize the database
 CMD ["postgres", "-c", "port=5433", "-c", "shared_preload_libraries=pg_hint_plan,pg_stat_statements"]

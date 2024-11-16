@@ -57,13 +57,13 @@ After starting the docker environment, connect the server to pgadmin and create 
 To create the tables in postgresql, run the following commands:
 
 ```bash
-python create_tables.py
+python utils/create_tables.py
 ```
 
 To load data into the tables, run the following commands:
 
 ```bash
-python load_data.py
+python utils/load_data.py
 ```
 
 Use the below command to check if pg_load_hints is loaded:
@@ -72,6 +72,7 @@ Use the below command to check if pg_load_hints is loaded:
 SHOW shared_preload_libraries;
 ```
 
+For manual imports:
 Order of importing the data
 
 1. region

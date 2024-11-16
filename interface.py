@@ -652,7 +652,7 @@ def visualize_query_plan(plan):
         x=edge_x,
         y=edge_y,
         line=dict(width=1, color="#888"),
-        hoverinfo="none",  
+        hoverinfo="none",
         mode="lines",
     )
 
@@ -660,7 +660,7 @@ def visualize_query_plan(plan):
     node_y = []
     node_details = []
     node_labels = []
-    node_hover_texts = []  
+    node_hover_texts = []
     node_colors = []
 
     for node in G.nodes():
