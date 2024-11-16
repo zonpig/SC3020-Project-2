@@ -619,7 +619,7 @@ def build_graph(G, node, parent=None):
     row_size = node.get("Actual Rows", "N/A")
     changed = node.get("changed", False)
 
-    label = f"{node['Node Type']}<br>Cost: {total_cost}<br>Buffer: {buffer}<br>Rows: {row_size}"
+    label = f"{node['Node Type']}<br>Node ID: {node_id}<br>Cost: {total_cost}<br>Buffer: {buffer}<br>Rows: {row_size}"
     G.add_node(node_id, label=label, type=node["Node Type"], data=node, changed=changed)
 
     if parent:
