@@ -60,6 +60,12 @@ To create the tables in postgresql, run the following commands:
 python create_tables.py
 ```
 
+To load data into the tables, run the following commands:
+
+```bash
+python load_data.py
+```
+
 Use the below command to check if pg_load_hints is loaded:
 
 ```bash

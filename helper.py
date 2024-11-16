@@ -74,9 +74,7 @@ def run_query(query, relations):
 
         result = {"query": query}
 
-        has_error, response = process_query(
-            query, relations
-        )  # Define this function based on your needs
+        has_error, response = process_query(query, relations)
         if has_error:
             result["error"] = response["msg"]
         else:
