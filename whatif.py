@@ -65,11 +65,11 @@ change_scan_mapping = {
         "NoBitmapScan",
     ),
     # Nested Loop Join
-    "replace Nested Loop Join with a Merge Join": (
+    "change Nested Loop Join to a Merge Join": (
         "NestedLoop",
         "MergeJoin",
     ),
-    "replace Nested Loop Join with a Hash Join": (
+    "change Nested Loop Join to a Hash Join": (
         "NestedLoop",
         "HashJoin",
     ),
@@ -78,11 +78,11 @@ change_scan_mapping = {
         "NoNestedLoop",
     ),
     # Merge Join
-    "replace Merge Join with a Nested Loop Join": (
+    "change Merge Join to a Nested Loop Join": (
         "MergeJoin",
         "NestedLoop",
     ),
-    "replace Merge Join with a Hash Join": (
+    "change Merge Join to a Hash Join": (
         "MergeJoin",
         "HashJoin",
     ),
@@ -91,11 +91,11 @@ change_scan_mapping = {
         "NoMergeJoin",
     ),
     # Hash Join
-    "replace Hash Join with a Nested Loop Join": (
+    "change Hash Join to a Nested Loop Join": (
         "HashJoin",
         "NestedLoop",
     ),
-    "replace Hash Join with a Merge Join": (
+    "change Hash Join to a Merge Join": (
         "HashJoin",
         "MergeJoin",
     ),

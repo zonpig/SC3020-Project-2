@@ -28,7 +28,7 @@ server = Flask(__name__)
 app = Dash(__name__, server=server, external_stylesheets=[dbc.themes.LUX])
 
 # Global variables
-queryid = None  # Placeholder logic. queryid can be local variable if modified query is known before execution
+queryid = None
 query_with_hints_global = None  # Store query_with_hints
 selected_options = []  # Store the current dropdown selections
 selections = []  # Stores the current node click selections
@@ -229,6 +229,11 @@ def update_query_list(n1, n2, children):
         Output("graph-alt-gen", "srcDoc", allow_duplicate=True),
         Output("specific-query", "children", allow_duplicate=True),
         Output("general-query", "children", allow_duplicate=True),
+        Output("natural-language-alt", "children", allow_duplicate=True),
+        Output("hit-block-alt", "children", allow_duplicate=True),
+        Output("read-block-alt", "children", allow_duplicate=True),
+        Output("total-cost-alt", "children", allow_duplicate=True),
+        Output("buffer-size-alt", "children", allow_duplicate=True),
     ],
     [Input({"type": "run-query", "index": ALL}, "n_clicks")],
     [State("main-query-list", "children")],
@@ -237,7 +242,7 @@ def update_query_list(n1, n2, children):
 def draw_graph(n1, children):
     global query_with_hints_global
     if not any(n1 or []):
-        return "", "", "", "", "", "", [], [], "", "", "", "", ""
+        return "", "", "", "", "", "", [], [], "", "", "", "", "", "", "", "", "", ""
     if n1:
         if (
             isinstance(ctx.triggered_id, dict)
@@ -307,8 +312,13 @@ def draw_graph(n1, children):
                             "",
                             "",
                             "",
+                            "",
+                            "",
+                            "",
+                            "",
+                            "",
                         )
-    return "", "", "", "", "", "", "", "", "", "", "", "", ""
+    return "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""
 
 
 @app.callback(
