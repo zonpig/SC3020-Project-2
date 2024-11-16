@@ -10,7 +10,6 @@ from dash import (
     State,
     ctx,
     dcc,
-    html,
 )
 from dash.exceptions import PreventUpdate
 from flask import Flask, jsonify, request
