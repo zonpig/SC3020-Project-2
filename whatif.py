@@ -150,10 +150,8 @@ def what_if(query, relations, questions):
         planner_option = " ".join(planner_option)
 
         modified_query = re.sub(r"/\*\+ .*? \*/", f"{planner_option}", query)
-        print(modified_query)
 
         reset_statements = " ".join(reset_statements)
-        print(reset_statements)
 
     else:
         # Specific Scenario (Dropdown)
@@ -177,7 +175,6 @@ def what_if(query, relations, questions):
                         # Join hint replacement between two tables
                         table1, table2 = join_match.groups()
                         replacements.append((old_hint, new_hint, table1, table2))
-        print(replacements)
         # Step 2: Apply replacements in one pass
         for old_hint, new_hint, table1, table2 in replacements:
             if table2 is None:
@@ -195,17 +192,14 @@ def what_if(query, relations, questions):
                 )
 
     result = {"query": modified_query}
-    print("test", modified_query)
-    has_error, response = process_query(
-        modified_query, relations
-    )  # Define this function based on your needs
+    has_error, response = process_query(modified_query, relations)
     if has_error:
         result["error"] = response["msg"]
     else:
         json_path = response["plan_data_path"]
         with open(json_path, "r") as json_file:
             plan = json.load(json_file)
-        url = visualize_query_plan(plan)  # Define this function based on your needs
+        url = visualize_query_plan(plan)
         image_url = f"{url}"
 
         result["data"] = {
