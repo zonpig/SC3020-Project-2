@@ -78,7 +78,8 @@ tab_aqp_spec = html.Div(
             [
                 dbc.Card(
                     [
-                        html.Div("Modified Query "),
+                        html.Div("Modified Query ",
+                                style={'font-weight': 'bold'}),
                         dbc.CardBody(children="", id="specific-query"),
                     ]
                 ),
