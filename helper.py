@@ -79,23 +79,25 @@ def extract_tables_from_query(sql_query: str):
     tokens = sql_query.split()
     table_aliases = {}
 
-    current_alias = None
-
-    for i in range(len(tokens)):
-        token = tokens[i].strip()
+    for i, token in enumerate(tokens):
+        # Check if the token is a valid table name
         if token in valid_tables:
-            # If the token is FROM or JOIN, set the next token as the value
-            next_token = tokens[i + 1].strip()
+            # Default alias is the table name itself
+            table_aliases[token] = token
 
-            if len(next_token) == 1:
-                # If the next token is a single character, use it as the alias key
-                current_alias = next_token
-                table_aliases[current_alias] = token
-                i += 1  # Skip the next token as it has been processed
-            else:
-                # Otherwise, use the next token as the key itself
-                current_alias = token
-                table_aliases[current_alias] = token
+            # Check if the next token exists and is not a keyword
+            if i + 1 < len(tokens) and tokens[i + 1] not in {
+                "FROM",
+                "JOIN",
+                "WHERE",
+                "ON",
+                "GROUP",
+                "ORDER",
+                "LIMIT",
+            }:
+                alias = tokens[i + 1].strip(",;")
+                table_aliases[alias] = token
+
     return table_aliases
 
 
