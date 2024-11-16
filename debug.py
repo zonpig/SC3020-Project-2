@@ -42,9 +42,8 @@ tab_aqp_gen = html.Div(
             [
                 dbc.Card(
                     [
-                        dbc.CardBody(
-                            children="whats up gang", id="general-query"
-                        )  # placeholder children value. children should be added dynamically on aqp creation
+                        html.Div("Modified Query "),
+                        dbc.CardBody(children="", id="general-query"),
                     ]
                 )
             ]
@@ -68,10 +67,7 @@ tab_general = dcc.Dropdown(
     style={"width": "100%"},
 )
 
-# Populate Specific What Ifs as a single-select dropdown
-# tab_specific_option =
 tab_specific_qep = dbc.ListGroup([], id="specific-whatif-list")
-
 
 tab_specific = html.Div(
     [
@@ -85,18 +81,12 @@ tab_specific = html.Div(
     ]
 )
 
-
 tab_aqp_spec = html.Div(
     [
         dbc.Row(
             [
-                dbc.Card(
-                    [
-                        dbc.CardBody(
-                            children="whats up gang", id="specific-query"
-                        )  # placeholder children value. children should be added dynamically on aqp creation
-                    ]
-                )
+                html.Div("Modified Query "),
+                dbc.Card([dbc.CardBody(children="", id="specific-query")]),
             ]
         ),
         dbc.Row(
@@ -259,10 +249,13 @@ app.layout = html.Div(
                                                                     [
                                                                         dbc.Card(
                                                                             [
+                                                                                html.Div(
+                                                                                    "Original Query with Hints"
+                                                                                ),
                                                                                 dbc.CardBody(
-                                                                                    children="IMPRESSING THE BRUZZ",
+                                                                                    children="",
                                                                                     id="original-query",
-                                                                                )  # placeholder children value. children should be added dynamically on aqp creation
+                                                                                ),  # placeholder children value. children should be added dynamically on aqp creation
                                                                             ],
                                                                         ),
                                                                     ],
@@ -703,13 +696,13 @@ def update_query_list(n1, n2, children):
         Output("buffer-size", "children"),
         Output("tab-general", "children"),
         Output("tab-specific", "children"),
-        Output("query-hints", "children"),  # New output for query_with_hints
+        Output("original-query", "children"),
     ],
     [Input({"type": "run-query", "index": ALL}, "n_clicks")],
     [State("main-query-list", "children")],
 )
 def draw_graph(n1, children):
-    global query_with_hints_global  # Declare the global variable
+    global query_with_hints_global
     if not any(n1 or []):
         return "", "", "", "", "", "", [], [], ""
     if n1:
@@ -769,12 +762,6 @@ def draw_graph(n1, children):
                             style={"width": "100%"},
                         )
 
-                        # Wrap query_with_hints in a Div
-                        query_hints_div = html.Div(
-                            f"Query with Hints: {query_with_hints}",
-                            style={"fontSize": "16px", "color": "blue"},
-                        )
-
                         return (
                             custom_html,
                             natural,
@@ -784,7 +771,7 @@ def draw_graph(n1, children):
                             size,
                             general_dropdown,
                             specific_dropdown,
-                            query_hints_div,
+                            query_with_hints,
                         )
     return "", "", "", "", "", "", "", "", ""
 
@@ -969,6 +956,7 @@ def generate_aqp_specific(tab, children):
         Output("read-block-alt", "children", allow_duplicate=True),
         Output("total-cost-alt", "children", allow_duplicate=True),
         Output("buffer-size-alt", "children", allow_duplicate=True),
+        Output("general-query", "children"),
     ],
     [
         Input("tabs", "value"),
@@ -994,6 +982,7 @@ def generate_aqp_general(tab, children):
                     query_with_hints_global, tables_extracted, selected_options
                 )
                 results = response.get_json()  # Extract JSON data from the response
+                print(results["query"])
                 if "error" in results:
                     print(f"Error: {results['error']}")
                 else:
@@ -1006,8 +995,17 @@ def generate_aqp_general(tab, children):
                     imageurl = data["imageUrl"]
                     custom_html = read_graph(imageurl)
                     hit, read, total, size = update_costs(data)
-                    return custom_html, natural, hit, read, total, size
-    return "", "", "", "", "", ""
+                    updated_query_text = results["query"]
+                    return (
+                        custom_html,
+                        natural,
+                        hit,
+                        read,
+                        total,
+                        size,
+                        updated_query_text,
+                    )
+    return "", "", "", "", "", "", ""
 
 
 # SERVER CALLS
