@@ -226,7 +226,10 @@ def process_query(user_query: str) -> Tuple[bool, dict]:
         # Add hints at the beginning of the query
         modified_query = f"/*+ {hints} */ {user_query}"
         result["query_with_hints"] = modified_query
+        print(f"Modified Query: {modified_query}")
+        print(set_statements)
         if not set_statements:
+            print(generate_what_if_questions(result["hints"]))
             specific_what_if, general_what_if = generate_what_if_questions(
                 result["hints"]
             )
@@ -240,6 +243,7 @@ def process_query(user_query: str) -> Tuple[bool, dict]:
     except Exception as e:
         return True, {"msg": f"An error has occurred: {repr(e)}"}
 
+    print("test")
     return False, result
 
 
@@ -627,44 +631,47 @@ def generate_what_if_questions(hints):
     operation_tables = []
     operation_types = set()
 
-    for item in hints:
-        # Split the item into the scan type and its parameters
-        operation_type, tables = item.split("(")
-        tables = tables.strip(")").split()
+    try:
+        for item in hints:
+            # Split the item into the scan type and its parameters
+            operation_type, tables = item.split("(")
+            tables = tables.strip(")").split()
 
-        operation_types.add(operation_type)
-        # Append each operation as a tuple to the list
-        operation_tables.append((operation_type, tables))
+            operation_types.add(operation_type)
+            # Append each operation as a tuple to the list
+            operation_tables.append((operation_type, tables))
 
-    operation_type_to_specific_function = {
-        "BitmapScan": bitmap_scan_specific_question,
-        "IndexScan": index_scan_specific_question,
-        "SeqScan": seq_scan_specific_question,
-        "NestLoop": nested_loop_specific_question,
-        "MergeJoin": merge_join_specific_question,
-        "HashJoin": hash_join_specific_question,
-    }
+        operation_type_to_specific_function = {
+            "BitmapScan": bitmap_scan_specific_question,
+            "IndexScan": index_scan_specific_question,
+            "SeqScan": seq_scan_specific_question,
+            "NestLoop": nested_loop_specific_question,
+            "MergeJoin": merge_join_specific_question,
+            "HashJoin": hash_join_specific_question,
+        }
 
-    for operation_table in operation_tables:
-        operation_type, tables = operation_table
-        if operation_type in operation_type_to_specific_function.keys():
-            what_if_specific_questions.extend(
-                operation_type_to_specific_function[operation_type](tables)
+        for operation_table in operation_tables:
+            operation_type, tables = operation_table
+            if operation_type in operation_type_to_specific_function.keys():
+                what_if_specific_questions.extend(
+                    operation_type_to_specific_function[operation_type](tables)
+                )
+
+        operation_type_to_general_function = {
+            "BitmapScan": bitmap_scan_general_question,
+            "IndexScan": index_scan_general_question,
+            "SeqScan": seq_scan_general_question,
+            "NestLoop": nested_loop_general_question,
+            "MergeJoin": merge_join_general_question,
+            "HashJoin": hash_join_general_question,
+        }
+
+        for operation_type in operation_types:
+            what_if_general_questions.append(
+                operation_type_to_general_function[operation_type]()
             )
-
-    operation_type_to_general_function = {
-        "BitmapScan": bitmap_scan_general_question,
-        "IndexScan": index_scan_general_question,
-        "SeqScan": seq_scan_general_question,
-        "NestLoop": nested_loop_general_question,
-        "MergeJoin": merge_join_general_question,
-        "HashJoin": hash_join_general_question,
-    }
-
-    for operation_type in operation_types:
-        what_if_general_questions.append(
-            operation_type_to_general_function[operation_type]()
-        )
+    except Exception as e:
+        print("Error generating what-if questions:", e)
 
     return what_if_specific_questions, what_if_general_questions
 

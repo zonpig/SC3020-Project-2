@@ -22,8 +22,10 @@ tab_aqp_gen = html.Div(
             [
                 dbc.Card(
                     [
-                        html.Div("Modified Query ",
-                                 style={'font-weight': 'bold'},),
+                        html.Div(
+                            "Modified Query ",
+                            style={"font-weight": "bold"},
+                        ),
                         dbc.CardBody(children="", id="general-query"),
                     ]
                 )
@@ -78,8 +80,7 @@ tab_aqp_spec = html.Div(
             [
                 dbc.Card(
                     [
-                        html.Div("Modified Query ",
-                                style={'font-weight': 'bold'}),
+                        html.Div("Modified Query ", style={"font-weight": "bold"}),
                         dbc.CardBody(children="", id="specific-query"),
                     ]
                 ),
@@ -196,7 +197,9 @@ def create_layout():
                                                                                 [
                                                                                     html.Div(
                                                                                         "Original Query with Hints",
-                                                                                        style={'font-weight': 'bold'}
+                                                                                        style={
+                                                                                            "font-weight": "bold"
+                                                                                        },
                                                                                     ),
                                                                                     dbc.CardBody(
                                                                                         children="",
@@ -615,13 +618,20 @@ def build_graph(G, node, parent=None):
     total_cost = node.get("Total Cost", "N/A")
     row_size = node.get("Actual Rows", "N/A")
     changed = node.get("changed", False)
-    relation = node.get("Relation Name","N/A")
+    relation = node.get("Relation Name", "N/A")
     label = ""
     if relation in node:
         label += f"Table: {relation}<br>"
 
     label += f"{node_id}<br>Cost: {total_cost}<br>Buffer: {buffer}<br>Rows: {row_size}"
-    G.add_node(node_id, label=label, type=node["Node Type"], data=node, changed=changed,relation=relation)
+    G.add_node(
+        node_id,
+        label=label,
+        type=node["Node Type"],
+        data=node,
+        changed=changed,
+        relation=relation,
+    )
 
     if parent:
         G.add_edge(parent, node_id)
@@ -679,13 +689,10 @@ def visualize_query_plan(plan):
             ]
         )
         node_type = details.get("Node Type", "N/A")
-        relation = G.nodes[node].get("relation", "") 
+        relation = G.nodes[node].get("relation", "")
 
         # Create detailed hover text
-        hover_text = (
-            f"Node Type: {node_type}<br>"
-            f"Node ID: {node}<br>"
-        )
+        hover_text = f"Node Type: {node_type}<br>" f"Node ID: {node}<br>"
         if relation != "N/A":
             hover_text += f"Table: {relation}<br>"
         hover_text += (
@@ -696,7 +703,7 @@ def visualize_query_plan(plan):
         node_hover_texts.append(hover_text)
 
         display_label = ""
-        if relation !="N/A":
+        if relation != "N/A":
             display_label += f"{relation}<br>"
         display_label += f"{node}<br>Cost: {details.get('Total Cost', 'N/A')}"
         node_labels.append(display_label)
@@ -720,7 +727,7 @@ def visualize_query_plan(plan):
             "changed": G.nodes[node]["changed"],
             "node_id": node,
             "hint": hint,
-            "relation":relation
+            "relation": relation,
         }
         node_details.append(node_info)
 
@@ -978,6 +985,7 @@ def visualize_query_plan(plan):
 
     return filename
 
+
 def visualize_query_plan_AQP(plan):
     # Create a global alt instance
     global alt
@@ -999,7 +1007,7 @@ def visualize_query_plan_AQP(plan):
         x=edge_x,
         y=edge_y,
         line=dict(width=1, color="#888"),
-        hoverinfo="none",  
+        hoverinfo="none",
         mode="lines",
     )
 
@@ -1007,7 +1015,7 @@ def visualize_query_plan_AQP(plan):
     node_y = []
     node_details = []
     node_labels = []
-    node_hover_texts = []  
+    node_hover_texts = []
     node_colors = []
 
     for node in G.nodes():
@@ -1026,13 +1034,10 @@ def visualize_query_plan_AQP(plan):
             ]
         )
         node_type = details.get("Node Type", "N/A")
-        relation = G.nodes[node].get("relation", "") 
+        relation = G.nodes[node].get("relation", "")
 
         # Create detailed hover text
-        hover_text = (
-            f"Node Type: {node_type}<br>"
-            f"Node ID: {node}<br>"
-        )
+        hover_text = f"Node Type: {node_type}<br>" f"Node ID: {node}<br>"
         if relation != "N/A":
             hover_text += f"Table: {relation}<br>"
         hover_text += (
@@ -1043,7 +1048,7 @@ def visualize_query_plan_AQP(plan):
         node_hover_texts.append(hover_text)
 
         display_label = ""
-        if relation !="N/A":
+        if relation != "N/A":
             display_label += f"{relation}<br>"
         display_label += f"{node}<br>Cost: {details.get('Total Cost', 'N/A')}"
         node_labels.append(display_label)
@@ -1067,7 +1072,7 @@ def visualize_query_plan_AQP(plan):
             "changed": G.nodes[node]["changed"],
             "node_id": node,
             "hint": hint,
-            "relation":relation
+            "relation": relation,
         }
         node_details.append(node_info)
 
@@ -1278,6 +1283,7 @@ def visualize_query_plan_AQP(plan):
 
     return filename
 
+
 def convert_html_to_dash(html_input):
     def parse_html(html_text):
         soup = BeautifulSoup(html_text, "html.parser")
@@ -1312,9 +1318,11 @@ def run_query(
         result = {"query": query}
 
         has_error, response = process_query(query)
+        print(has_error, response)
         if has_error:
             result["error"] = response["msg"]
         else:
+            print(response)
             specific_what_if = response["specific_what_if"]
             general_what_if = response["general_what_if"]
             query_with_hints = response["query_with_hints"]

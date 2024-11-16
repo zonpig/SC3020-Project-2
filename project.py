@@ -226,6 +226,10 @@ def update_query_list(n1, n2, children):
         Output("tab-general", "children"),
         Output("tab-specific", "children"),
         Output("original-query", "children"),
+        Output("graph-alt-spec", "srcDoc", allow_duplicate=True),
+        Output("graph-alt-gen", "srcDoc", allow_duplicate=True),
+        Output("specific-query", "children", allow_duplicate=True),
+        Output("general-query", "children", allow_duplicate=True),
     ],
     [Input({"type": "run-query", "index": ALL}, "n_clicks")],
     [State("main-query-list", "children")],
@@ -234,7 +238,7 @@ def update_query_list(n1, n2, children):
 def draw_graph(n1, children):
     global query_with_hints_global
     if not any(n1 or []):
-        return "", "", "", "", "", "", [], [], ""
+        return "", "", "", "", "", "", [], [], "", "", "", "", ""
     if n1:
         if (
             isinstance(ctx.triggered_id, dict)
@@ -301,8 +305,12 @@ def draw_graph(n1, children):
                             general_dropdown,
                             specific_dropdown,
                             query_with_hints,
+                            "",
+                            "",
+                            "",
+                            "",
                         )
-    return "", "", "", "", "", "", "", "", ""
+    return "", "", "", "", "", "", "", "", "", "", "", "", ""
 
 
 @app.callback(

@@ -1,5 +1,5 @@
 import re
-from preprocessing import process_query
+from preprocessing import process_query, Database
 from interface import visualize_query_plan_AQP
 from flask import jsonify
 import json
@@ -155,12 +155,17 @@ def what_if(query: str, questions: list):
     # General Scenario
     elif questions[0] in question_to_planner_option:
         planner_option = []
+        reset_statements = []
+
         for question in questions:
             planner_option.append(question_to_planner_option[question])
+            reset_statements.append(reset_options[question_to_planner_option[question]])
 
-        planner_options = " ".join(planner_option)
+        planner_option = " ".join(planner_option)
 
-        modified_query = re.sub(r"/\*\+ .*? \*/", f"{planner_options}", query)
+        modified_query = re.sub(r"/\*\+ .*? \*/", f"{planner_option}", query)
+
+        reset_statements = " ".join(reset_statements)
 
     else:
         # Specific Scenario (Dropdown)
@@ -199,6 +204,14 @@ def what_if(query: str, questions: list):
 
     result = {"query": modified_query}
     has_error, response = process_query(modified_query)
+    if reset_statements:
+        connection = Database.get_connection()
+
+        cursor = connection.cursor()
+
+        # Query to get table names from the specified schema
+        cursor.execute(reset_statements)
+
     if has_error:
         result["error"] = response["msg"]
     else:
