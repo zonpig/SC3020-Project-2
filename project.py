@@ -125,7 +125,6 @@ def set_database(n_clicks, selected_schema):
             queries_list = []
             if selected_schema == "TPC-H":
                 for idx, query in enumerate(example_queries):
-                    print(f"Adding query at index {idx}: {query}")  # Debugging
                     queries_list.append(
                         dbc.ListGroupItem(
                             [
@@ -256,7 +255,6 @@ def draw_graph(n1, children):
                         run_query(n_query)
                     )
                     query_with_hints_global = query_with_hints
-                    print(query_with_hints_global)
                     results = response.get_json()  # Extract JSON data from the response
                     if "error" in results:
                         print(f"Error: {results['error']}")
@@ -385,7 +383,6 @@ def handle_tab_and_dropdown_changes(general_value, specific_value, active_tab):
 
     if trigger_id == "tabs":
         print(f"Active tab: {active_tab}")
-        print(f"selected options: {selected_options}")
         if active_tab == "gen-qep":
             # Clears all tabs when switched to interactive
             general_value = []
@@ -448,22 +445,15 @@ def generate_aqp_specific(tab, children):
         if selected_options:
             print(f"Starting AQP generation with options: {selected_options}")
             print(f"STARTING ALTERNATE RUN {queryid}")
-            for i, child in enumerate(children):
+            for child in children:
                 if child["props"]["id"]["index"] == queryid:
-                    query = child["props"]["children"][0]["props"]["value"]
-                    n_query = re.sub(r"\n|\t", " ", query).strip()
-                    print(f"The query is: {n_query.upper()}")
                     response = what_if(query_with_hints_global, selected_options)
                     results = response.get_json()  # Extract JSON data from the response
         elif selections:
             print(f"Starting AQP generation with options: {selections}")
             print(f"STARTING ALTERNATE RUN {queryid}")
-            for i, child in enumerate(children):
+            for child in children:
                 if child["props"]["id"]["index"] == queryid:
-                    query = child["props"]["children"][0]["props"]["value"]
-                    n_query = re.sub(r"\n|\t", " ", query).strip()
-                    print(f"The query is: {n_query.upper()}")
-                    print(f"Selections: {selections}")
                     response = what_if(query_with_hints_global, selections)
                     results = response.get_json()  # Extract JSON data from the response
         if "error" in results:
@@ -509,7 +499,6 @@ def generate_aqp_general(tab, children):
             if child["props"]["id"]["index"] == queryid:
                 response = what_if(query_with_hints_global, selected_options)
                 results = response.get_json()  # Extract JSON data from the response
-                print(results["query"])
                 if "error" in results:
                     print(f"Error: {results['error']}")
                 else:
@@ -539,7 +528,6 @@ def generate_aqp_general(tab, children):
 @server.route("/nodeclick", methods=["POST"])
 def receive_nodeclick():
     data = request.get_json()
-    print(data)
     current_selection = {
         "timestamp": datetime.datetime.now().strftime("%Y%m%d_%H%M%S"),
         "node_type": data.get("type"),
@@ -563,7 +551,6 @@ def receive_nodeclick():
     else:
         selections.append(current_selection)
 
-    print(selections)
     return jsonify({"status": "success"})
 
 
