@@ -29,7 +29,8 @@ app = Dash(__name__, server=server, external_stylesheets=[dbc.themes.LUX])
 # Global variables
 queryid = None  # Placeholder logic. queryid can be local variable if modified query is known before execution
 query_with_hints_global = None  # Global variable to store query_with_hints
-
+selected_options = []  # This will store the current dropdown selections
+selections = [] # Stores the current node click selections
 
 # Pre populating input queries
 eg1 = "SELECT customer.c_name, nation.n_name FROM customer, nation WHERE customer.c_nationkey = nation.n_nationkey and customer.c_acctbal <= 5 and nation.n_nationkey <= 5"
@@ -67,8 +68,14 @@ tab_general = dcc.Dropdown(
     style={"width": "100%"},
 )
 
-tab_specific_qep = dbc.ListGroup([], id="specific-whatif-list")
+tab_specific_qep = dbc.Row(
+    [
+        dbc.ListGroup([],id="specific-whatif-list", style={"overflow": "scroll"}),
+        dbc.Button("Clear All", id="clear-interactive", style={"width": "100%", "margin": "0 auto"}),
+    ],
+)
 
+# Populate Specific What Ifs as a single-select dropdown
 tab_specific = html.Div(
     [
         dcc.Dropdown(
@@ -286,7 +293,7 @@ app.layout = html.Div(
                                                                                 ),
                                                                             ],
                                                                             style={
-                                                                                "height": "900px"
+                                                                                "height": "1080px"
                                                                             },
                                                                             class_name="border-primary",
                                                                         ),
@@ -363,7 +370,7 @@ app.layout = html.Div(
                                                                         ),
                                                                     ],
                                                                     style={
-                                                                        "height": "960px"
+                                                                        "height": "1080px"
                                                                     },
                                                                     class_name="border-primary",
                                                                 ),
@@ -645,6 +652,13 @@ app.layout = html.Div(
     ]
 )
 
+# Reset global variables on app restart
+@server.before_request
+def reset_globals():
+    server.before_request_funcs[None].remove(reset_globals)
+
+    global selected_options, selections, queryid, query_with_hints_global
+    selected_options, selections, queryid, query_with_hints_global = [], [], None, None
 
 # Callback to add or delete query list
 @app.callback(
@@ -781,22 +795,31 @@ def draw_graph(n1, children):
     [
         Input("interval-component", "n_intervals"),
         Input({"type": "run-query", "index": ALL}, "n_clicks"),
+        Input("clear-interactive", "n_clicks"),
     ],
     State("specific-whatif-list", "children"),
 )
-def update_card(n_intervals, n1, children):
-    # Reset specific what if when new query is ran
+def update_card(n_intervals, n1, n2, children):
+    global selections
+    # Reset interactive what if when new query is ran
     if n1:
         # Check that trigger is run query
         if (
             isinstance(ctx.triggered_id, dict)
             and ctx.triggered_id["type"] == "run-query"
         ):
+            selections = []
             children = []
             return children
-
+    
+    if n2:
+        if(ctx.triggered_id == "clear-interactive"):
+            children = []
+            selections = []
+            return children
     if children is None:
         children = []
+    
     if selections:
         for select in selections:
             nodeid = select["node_id"]
@@ -816,11 +839,13 @@ def update_card(n_intervals, n1, children):
 
 
 # Logic for dropdowns
-selected_options = []  # This will store the current dropdown selections
 
 
 @app.callback(
-    Output("dropdown-placeholder", "children"),  # Single shared output
+    [
+        Output("dropdown-general", "value"),
+        Output("dropdown-specific", "value"),
+    ],
     [
         Input("dropdown-general", "value"),
         Input("dropdown-specific", "value"),
@@ -837,22 +862,26 @@ def handle_tab_and_dropdown_changes(general_value, specific_value, active_tab):
 
     if trigger_id == "tabs":
         print(f"Active tab: {active_tab}")
-        # Reset the selected options when the tab changes
-        if active_tab != "gen-aqp-spec" and active_tab != "gen-aqp-gen":
-            selected_options = []
-            print(f"Reset selected options due to tab change: {selected_options}")
+        print(f"selected options: {selected_options}")
+        if active_tab == "gen-qep":
+            # Clears all tabs when switched to interactive
+            general_value = []
+            specific_value = []
     elif trigger_id == "dropdown-general" and active_tab == "gen-gen":
+        # Clears specific tab
+        specific_value = []
         # Update for General What Ifs
-        if general_value:
-            selected_options = general_value  # Multi-select values
-            print(f"Updated selected options (general): {selected_options}")
-    elif trigger_id == "dropdown-specific" and active_tab == "gen-sp":
-        # Update for Specific What Ifs
-        if specific_value:
-            selected_options = [specific_value]  # Single-select value as a list
-            print(f"Updated selected options (specific): {selected_options}")
+        selected_options = general_value  # Multi-select values
+        print(f"Updated selected options (general): {selected_options}")
 
-    return ""  # Placeholder output to satisfy Dash requirements
+    elif trigger_id == "dropdown-specific" and active_tab == "gen-sp":
+        # Clears general tab
+        general_value = []
+        # Update for Specific What Ifs
+        selected_options = [specific_value]  # Single-select value as a list    
+        print(f"Updated selected options (specific): {selected_options}")
+
+    return general_value, specific_value
 
 
 # AQP generation callback
@@ -890,8 +919,8 @@ def generate_aqp_specific(tab, children):
     global selections
     global queryid
 
-    print(f"Current tab: {tab}")
     if tab == "gen-aqp-spec":
+        print(f"Current tab: {tab}")
         if selected_options:
             print(f"Starting AQP generation with options: {selected_options}")
             print(f"STARTING ALTERNATE RUN {queryid}")
@@ -967,8 +996,8 @@ def generate_aqp_specific(tab, children):
 def generate_aqp_general(tab, children):
     global selected_options
     global query_with_hints_global  # Use the global variable
-    print(f"Current tab: {tab}")
     if tab == "gen-aqp-gen":
+        print(f"Current tab: {tab}")
         print(f"Starting AQP generation with options: {selected_options}")
         global queryid
         print(f"STARTING ALTERNATE RUN {queryid}")
@@ -1009,8 +1038,6 @@ def generate_aqp_general(tab, children):
 
 
 # SERVER CALLS
-selections = []
-
 
 @server.route("/nodeclick", methods=["POST"])
 def receive_nodeclick():
