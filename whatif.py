@@ -1,6 +1,6 @@
 import re
 from preprocessing import process_query
-from interface import visualize_query_plan
+from interface import visualize_query_plan_AQP
 from flask import jsonify
 import json
 
@@ -192,7 +192,7 @@ def what_if(query, questions):
         json_path = response["plan_data_path"]
         with open(json_path, "r") as json_file:
             plan = json.load(json_file)
-        url = visualize_query_plan(plan)
+        url = visualize_query_plan_AQP(plan)
         image_url = f"{url}"
 
         result["data"] = {
