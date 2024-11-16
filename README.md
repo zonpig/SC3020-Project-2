@@ -32,14 +32,6 @@ Note that we shall be running the project.py file (either from command prompt or
 Make sure your code follows good coding practice: sufficient comments, proper variable/function naming,
 etc. We will execute the software to check its correctness using different query sets and dataset to check for the generality of the solution. We will also check quality of algorithm design w.r.t processing of the query plans and what-if questions.
 
-## Flow
-
-Project.py -> Interface.py
-
-If have TPC-H database, can load default sql queries from the database
-
-Else, can input custom sql queries
-
 ## Creating TPC-H database in PostgreSQL
 
 Download TPC-H_Tools_v3.0.1.zip
@@ -119,8 +111,6 @@ pip3 install \
     pygraphviz
 ```
 
-
-
 To install pygraphviz on windows, do the following steps:
 
 1. Go to the website `https://www.graphviz.org/download/` and download the 64-bit EXE installer for Windows.
@@ -134,7 +124,7 @@ To install pygraphviz on windows, do the following steps:
        - `C:\Program Files\Graphviz\lib`
     6) Click **OK** to save the changes and close the windows.
 3. Run the following command in a new command prompt
-   
+
 ```bash
 pip install pygraphviz --global-option=build_ext --global-option="-I<C:\Program Files\Graphviz\include>" --global-option="-L<C:\Program Files\Graphviz\lib>"
 ```
@@ -144,12 +134,6 @@ pip install pygraphviz --global-option=build_ext --global-option="-I<C:\Program 
 ```bash
 import pygraphviz as pgv
 print(pgv.__version__)
-```
-
-Testing Command for whatif
-
-```bash
-pytest --cov=whatif --cov-report=term --cov-report=xml:coverage.xml
 ```
 
 References:

@@ -16,10 +16,10 @@ from flask import Flask, jsonify, request
 
 from interface import (
     convert_html_to_dash,
+    create_layout,
     read_graph,
     run_query,
     update_costs,
-    create_layout,
 )
 from preprocessing import Database, get_postgres_schemas
 from whatif import what_if
@@ -29,14 +29,14 @@ app = Dash(__name__, server=server, external_stylesheets=[dbc.themes.LUX])
 
 # Global variables
 queryid = None  # Placeholder logic. queryid can be local variable if modified query is known before execution
-query_with_hints_global = None  # Global variable to store query_with_hints
-selected_options = []  # This will store the current dropdown selections
+query_with_hints_global = None  # Store query_with_hints
+selected_options = []  # Store the current dropdown selections
 selections = []  # Stores the current node click selections
 
 # Pre populating input queries
 example_queries = [
-    "SELECT customer.c_name, nation.n_name FROM customer, nation WHERE customer.c_nationkey = nation.n_nationkey and customer.c_acctbal <= 5 and nation.n_nationkey <= 5",
-    "select sum(l_extendedprice * l_discount) as revenue from lineitem where l_shipdate >= date '1995-01-01' and l_shipdate < date '1995-01-01' + interval '1' year and l_discount between 0.09 - 0.01 and 0.09 + 0.01 and l_quantity < 24;",
+    "SELECT o_orderkey, o_orderdate, o_totalprice FROM orders o WHERE o.o_orderdate BETWEEN DATE '1994-01-01' AND DATE '1994-12-31' ORDER BY o.o_orderdate;",
+    "select c.c_name, n.n_name, sum(l.l_extendedprice * (1 - l.l_discount)) as total_revenue from customer c join orders o on c.c_custkey = o.o_custkey join lineitem l on o.o_orderkey = l.l_orderkey join nation n on c.c_nationkey = n.n_nationkey where o.o_orderdate >= date '1993-01-01' and o.o_orderdate < date '1993-01-01' + interval '7' day and l.l_discount < 0.01 group by c.c_name, n.n_name order by total_revenue desc;",
     "select ps_partkey, sum(ps_supplycost * ps_availqty) as value from partsupp, supplier, nation where ps_suppkey = s_suppkey and s_nationkey = n_nationkey and n_name = 'SAUDI ARABIA' group by ps_partkey having sum(ps_supplycost * ps_availqty) > (select sum(ps_supplycost * ps_availqty) * 0.0001000000 from partsupp, supplier, nation where ps_suppkey = s_suppkey and s_nationkey = n_nationkey and n_name = 'SAUDI ARABIA') order by value desc limit 1;",
 ]
 
@@ -390,15 +390,15 @@ def handle_tab_and_dropdown_changes(general_value, specific_value, active_tab):
             # Clears all tabs when switched to interactive
             general_value = []
             specific_value = []
+            selected_options = []
+    # Clears specific tab
     elif trigger_id == "dropdown-general" and active_tab == "gen-gen":
-        # Clears specific tab
         specific_value = []
         # Update for General What Ifs
         selected_options = general_value  # Multi-select values
         print(f"Updated selected options (general): {selected_options}")
-
+    # Clears general tab
     elif trigger_id == "dropdown-specific" and active_tab == "gen-sp":
-        # Clears general tab
         general_value = []
         # Update for Specific What Ifs
         selected_options = [specific_value]  # Single-select value as a list
@@ -455,7 +455,7 @@ def generate_aqp_specific(tab, children):
                     print(f"The query is: {n_query.upper()}")
                     response = what_if(query_with_hints_global, selected_options)
                     results = response.get_json()  # Extract JSON data from the response
-        else:
+        elif selections:
             print(f"Starting AQP generation with options: {selections}")
             print(f"STARTING ALTERNATE RUN {queryid}")
             for i, child in enumerate(children):
@@ -507,9 +507,6 @@ def generate_aqp_general(tab, children):
         print(f"STARTING ALTERNATE RUN {queryid}")
         for i, child in enumerate(children):
             if child["props"]["id"]["index"] == queryid:
-                query = child["props"]["children"][0]["props"]["value"]
-                n_query = re.sub(r"\n|\t", " ", query).strip()
-                print(f"The query is: {n_query.upper()}")
                 response = what_if(query_with_hints_global, selected_options)
                 results = response.get_json()  # Extract JSON data from the response
                 print(results["query"])
@@ -539,8 +536,6 @@ def generate_aqp_general(tab, children):
 
 
 # SERVER CALLS
-
-
 @server.route("/nodeclick", methods=["POST"])
 def receive_nodeclick():
     data = request.get_json()

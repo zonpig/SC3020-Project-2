@@ -1,8 +1,10 @@
-import re
-from preprocessing import process_query, Database
-from interface import visualize_query_plan_AQP
-from flask import jsonify
 import json
+import re
+
+from flask import jsonify
+
+from interface import visualize_query_plan_AQP
+from preprocessing import Database, process_query
 
 question_to_planner_option = {
     "What happens if I don't use BitMap Scan at all?": "SET enable_bitmapscan to off;",
@@ -131,6 +133,9 @@ def what_if(query: str, questions: list):
         KeyError: If a question is not found in the predefined mappings.
         IOError: If there is an issue reading the JSON file containing the query plan.
     """
+    planner_option = []
+    reset_statements = []
+
     # Specific Scenario (Tree)
     if isinstance(questions[0], dict):
         changed_hints = {}
@@ -154,9 +159,6 @@ def what_if(query: str, questions: list):
 
     # General Scenario
     elif questions[0] in question_to_planner_option:
-        planner_option = []
-        reset_statements = []
-
         for question in questions:
             planner_option.append(question_to_planner_option[question])
             reset_statements.append(reset_options[question_to_planner_option[question]])

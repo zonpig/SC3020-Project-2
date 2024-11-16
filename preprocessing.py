@@ -226,10 +226,7 @@ def process_query(user_query: str) -> Tuple[bool, dict]:
         # Add hints at the beginning of the query
         modified_query = f"/*+ {hints} */ {user_query}"
         result["query_with_hints"] = modified_query
-        print(f"Modified Query: {modified_query}")
-        print(set_statements)
         if not set_statements:
-            print(generate_what_if_questions(result["hints"]))
             specific_what_if, general_what_if = generate_what_if_questions(
                 result["hints"]
             )
