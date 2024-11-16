@@ -7,9 +7,8 @@ import psycopg2
 from psycopg2 import ProgrammingError, OperationalError
 import re
 
+
 ####################################### Database Connection #######################################
-
-
 class Database:
     connection = None
     database = "TPC-H"  # Default database
@@ -105,8 +104,6 @@ Main Function : process_query
 
 
 def process_query(user_query, relations):
-    query_str = f"EXPLAIN (ANALYZE, COSTS, SETTINGS, VERBOSE, BUFFERS, SUMMARY, FORMAT JSON) {user_query};"
-
     result = {
         "plan_data_path": None,
         "summary_data": None,

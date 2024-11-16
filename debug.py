@@ -18,7 +18,7 @@ from helper import (
     update_costs,
     convert_html_to_dash,
 )
-from whatif3 import what_if
+from whatif import what_if
 
 from flask import Flask, request, jsonify
 import datetime
@@ -123,7 +123,7 @@ app.layout = html.Div(
                                     [
                                         dbc.CardHeader(
                                             [
-                                                "SQL Queries",
+                                                "WHAT-IF ANALYSIS OF QUERY PLANS",
                                                 dbc.Button(
                                                     "Add New Query",
                                                     id="add-query",
