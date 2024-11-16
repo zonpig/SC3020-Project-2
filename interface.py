@@ -615,9 +615,13 @@ def build_graph(G, node, parent=None):
     total_cost = node.get("Total Cost", "N/A")
     row_size = node.get("Actual Rows", "N/A")
     changed = node.get("changed", False)
+    relation = node.get("Relation Name","N/A")
+    label = ""
+    if relation in node:
+        label += f"Table: {relation}<br>"
 
-    label = f"{node_id}<br>Cost: {total_cost}<br>Buffer: {buffer}<br>Rows: {row_size}"
-    G.add_node(node_id, label=label, type=node["Node Type"], data=node, changed=changed)
+    label += f"{node_id}<br>Cost: {total_cost}<br>Buffer: {buffer}<br>Rows: {row_size}"
+    G.add_node(node_id, label=label, type=node["Node Type"], data=node, changed=changed,relation=relation)
 
     if parent:
         G.add_edge(parent, node_id)
@@ -675,18 +679,26 @@ def visualize_query_plan(plan):
             ]
         )
         node_type = details.get("Node Type", "N/A")
+        relation = G.nodes[node].get("relation", "") 
 
         # Create detailed hover text
         hover_text = (
             f"Node Type: {node_type}<br>"
             f"Node ID: {node}<br>"
+        )
+        if relation != "N/A":
+            hover_text += f"Table: {relation}<br>"
+        hover_text += (
             f"Total Cost: {details.get('Total Cost', 'N/A')}<br>"
             f"Buffer: {buffer_sum}<br>"
-            f"Rows: {details.get('Actual Rows', 'N/A')}<br>"
+            f"Rows: {details.get('Actual Rows', 'N/A')}"
         )
         node_hover_texts.append(hover_text)
 
-        display_label = f"{node}<br>Cost: {details.get('Total Cost', 'N/A')}"
+        display_label = ""
+        if relation !="N/A":
+            display_label += f"{relation}<br>"
+        display_label += f"{node}<br>Cost: {details.get('Total Cost', 'N/A')}"
         node_labels.append(display_label)
 
         # Set what if options based on node type
@@ -708,6 +720,7 @@ def visualize_query_plan(plan):
             "changed": G.nodes[node]["changed"],
             "node_id": node,
             "hint": hint,
+            "relation":relation
         }
         node_details.append(node_info)
 
@@ -901,6 +914,11 @@ def visualize_query_plan(plan):
                     details.innerHTML = `
                         <strong>Node Type:</strong> ${{currentNode.type}}<br>
                         <strong>Node ID:</strong> ${{currentNode.node_id}}<br>
+                    `;
+                    if (currentNode.relation!="N/A") {{
+                        details.innerHTML += `<strong>Table:</strong> ${{currentNode.relation}}<br>`;
+                    }}
+                    details.innerHTML += `
                         <strong>Total Cost:</strong> ${{currentNode.cost}}<br>
                         <strong>Rows:</strong> ${{currentNode.rows}}<br>
                         <strong>Buffer:</strong> ${{currentNode.buffer}}
@@ -1008,18 +1026,26 @@ def visualize_query_plan_AQP(plan):
             ]
         )
         node_type = details.get("Node Type", "N/A")
+        relation = G.nodes[node].get("relation", "") 
 
         # Create detailed hover text
         hover_text = (
             f"Node Type: {node_type}<br>"
             f"Node ID: {node}<br>"
+        )
+        if relation != "N/A":
+            hover_text += f"Table: {relation}<br>"
+        hover_text += (
             f"Total Cost: {details.get('Total Cost', 'N/A')}<br>"
             f"Buffer: {buffer_sum}<br>"
-            f"Rows: {details.get('Actual Rows', 'N/A')}<br>"
+            f"Rows: {details.get('Actual Rows', 'N/A')}"
         )
         node_hover_texts.append(hover_text)
 
-        display_label = f"{node}<br>Cost: {details.get('Total Cost', 'N/A')}"
+        display_label = ""
+        if relation !="N/A":
+            display_label += f"{relation}<br>"
+        display_label += f"{node}<br>Cost: {details.get('Total Cost', 'N/A')}"
         node_labels.append(display_label)
 
         # Set what if options based on node type
@@ -1041,6 +1067,7 @@ def visualize_query_plan_AQP(plan):
             "changed": G.nodes[node]["changed"],
             "node_id": node,
             "hint": hint,
+            "relation":relation
         }
         node_details.append(node_info)
 
@@ -1216,6 +1243,11 @@ def visualize_query_plan_AQP(plan):
                     details.innerHTML = `
                         <strong>Node Type:</strong> ${{currentNode.type}}<br>
                         <strong>Node ID:</strong> ${{currentNode.node_id}}<br>
+                    `;
+                    if (currentNode.relation!="N/A") {{
+                        details.innerHTML += `<strong>Table:</strong> ${{currentNode.relation}}<br>`;
+                    }}
+                    details.innerHTML += `
                         <strong>Total Cost:</strong> ${{currentNode.cost}}<br>
                         <strong>Rows:</strong> ${{currentNode.rows}}<br>
                         <strong>Buffer:</strong> ${{currentNode.buffer}}
