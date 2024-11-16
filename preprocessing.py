@@ -716,7 +716,7 @@ def bitmap_scan_specific_question(table):
     questions = [
         f"What happens if I replace BitMap Scan with a Sequential Scan on table {table[0]}?",
         f"What happens if I replace BitMap Scan with an Index Scan on table {table[0]}?",
-        f"What happens if I prevent the use of BitMap Scan for table {table[0]}?",
+        f"What happens if I prevent the use of BitMap Scan on table {table[0]}?",
     ]
     return questions
 
@@ -725,7 +725,7 @@ def index_scan_specific_question(table):
     questions = [
         f"What happens if I replace Index Scan with a Sequential Scan on table {table[0]}?",
         f"What happens if I replace Index Scan with a BitMap Scan on table {table[0]}?",
-        f"What happens if I prevent the use of Index Scan for table {table[0]}?",
+        f"What happens if I prevent the use of Index Scan on table {table[0]}?",
     ]
     return questions
 
@@ -734,7 +734,7 @@ def seq_scan_specific_question(table):
     questions = [
         f"What happens if I replace Sequential Scan with an Index Scan on table {table[0]}?",
         f"What happens if I replace Sequential Scan with a BitMap Scan on table {table[0]}?",
-        f"What happens if I prevent the use of Sequential Scan for table {table[0]}?",
+        f"What happens if I prevent the use of Sequential Scan on table {table[0]}?",
     ]
     return questions
 
@@ -775,9 +775,9 @@ def hash_join_specific_question(tables):
 def merge_join_specific_question(tables):
     table_a, table_b = tables
     questions = [
-        f"What happens if I change Merge Join to a Nested Loop Join of tables {table_a} and {table_b} ?",
-        f"What happens if I change Merge Join to a Hash Join of tables {table_a} and {table_b} ?",
-        f"What happens if I prevent the use of Merge Join for tables {table_a} and {table_b}?",
+        f"What happens if I change Merge Join to a Nested Loop Join for tables {table_a} and {table_b} ?",
+        f"What happens if I change Merge Join to a Hash Join for tables {table_a} and {table_b} ?",
+        f"What happens if I prevent the use for Merge Join for tables {table_a} and {table_b}?",
     ]
     return questions
 

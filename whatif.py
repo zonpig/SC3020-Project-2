@@ -172,13 +172,12 @@ def what_if(query: str, questions: list):
     else:
         # Specific Scenario (Dropdown)
         replacements = []
-
         # Step 1: Identify necessary replacements based on questions
         for question in questions:
             for description, (old_hint, new_hint) in change_scan_mapping.items():
                 if description in question:
                     # Check if the question specifies a single table or a join (two tables)
-                    table_match = re.search(r"for table (\w+)", question)
+                    table_match = re.search(r"on table (\w+)", question)
                     join_match = re.search(r"for tables (\w+) and (\w+)", question)
 
                     if table_match:
@@ -203,7 +202,6 @@ def what_if(query: str, questions: list):
                     f"{new_hint}({table1} {table2})",
                     query,
                 )
-
     result = {"query": modified_query}
     has_error, response = process_query(modified_query)
     if reset_statements:

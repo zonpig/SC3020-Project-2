@@ -1318,18 +1318,16 @@ def run_query(
         result = {"query": query}
 
         has_error, response = process_query(query)
-        print(has_error, response)
         if has_error:
             result["error"] = response["msg"]
         else:
-            print(response)
             specific_what_if = response["specific_what_if"]
             general_what_if = response["general_what_if"]
             query_with_hints = response["query_with_hints"]
             json_path = response["plan_data_path"]
             with open(json_path, "r") as json_file:
                 plan = json.load(json_file)
-            url = visualize_query_plan(plan)  # Define this function based on your needs
+            url = visualize_query_plan(plan)
             image_url = f"{url}"
 
             result["data"] = {

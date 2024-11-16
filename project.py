@@ -35,7 +35,7 @@ selections = []  # Stores the current node click selections
 
 # Pre populating input queries
 example_queries = [
-    "SELECT o_orderkey, o_orderdate, o_totalprice FROM orders o WHERE o.o_orderdate BETWEEN DATE '1994-01-01' AND DATE '1994-12-31' ORDER BY o.o_orderdate;",
+    "SELECT customer.c_name, nation.n_name FROM customer, nation WHERE customer.c_nationkey = nation.n_nationkey and customer.c_acctbal >= 5 and nation.n_nationkey >= 5",
     "select c.c_name, n.n_name, sum(l.l_extendedprice * (1 - l.l_discount)) as total_revenue from customer c join orders o on c.c_custkey = o.o_custkey join lineitem l on o.o_orderkey = l.l_orderkey join nation n on c.c_nationkey = n.n_nationkey where o.o_orderdate >= date '1993-01-01' and o.o_orderdate < date '1993-01-01' + interval '7' day and l.l_discount < 0.01 group by c.c_name, n.n_name order by total_revenue desc;",
     "select ps_partkey, sum(ps_supplycost * ps_availqty) as value from partsupp, supplier, nation where ps_suppkey = s_suppkey and s_nationkey = n_nationkey and n_name = 'SAUDI ARABIA' group by ps_partkey having sum(ps_supplycost * ps_availqty) > (select sum(ps_supplycost * ps_availqty) * 0.0001000000 from partsupp, supplier, nation where ps_suppkey = s_suppkey and s_nationkey = n_nationkey and n_name = 'SAUDI ARABIA') order by value desc limit 1;",
 ]
