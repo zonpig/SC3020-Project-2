@@ -70,7 +70,7 @@ tab_general = dcc.Dropdown(
 
 tab_specific_qep = dbc.Row(
     [
-        dbc.ListGroup([],id="specific-whatif-list"),
+        dbc.ListGroup([],id="specific-whatif-list", style={"overflow": "scroll"}),
         dbc.Button("Clear All", id="clear-interactive", style={"width": "100%", "margin": "0 auto"}),
     ],
 )
@@ -293,7 +293,7 @@ app.layout = html.Div(
                                                                                 ),
                                                                             ],
                                                                             style={
-                                                                                "height": "900px"
+                                                                                "height": "1080px"
                                                                             },
                                                                             class_name="border-primary",
                                                                         ),
@@ -370,7 +370,7 @@ app.layout = html.Div(
                                                                         ),
                                                                     ],
                                                                     style={
-                                                                        "height": "960px"
+                                                                        "height": "1080px"
                                                                     },
                                                                     class_name="border-primary",
                                                                 ),
