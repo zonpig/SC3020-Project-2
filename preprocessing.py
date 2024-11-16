@@ -136,7 +136,7 @@ Main Function : process_query
 """
 
 
-def process_query(user_query, relations):
+def process_query(user_query):
     """
     Processes a SQL query by executing it, analyzing the query plan, and generating various insights.
 
@@ -156,7 +156,6 @@ def process_query(user_query, relations):
         "plan_data_path": None,
         "summary_data": None,
         "natural_explain": None,
-        "block_analysis": None,
         "specific_what_if": None,
         "general_what_if": None,
         "query_with_hints": None,
@@ -167,16 +166,19 @@ def process_query(user_query, relations):
 
         # Check for SET statements
         set_statements = []
-        main_query = user_query
-        if "SET" in user_query.upper():
-            queries = user_query.split(";")
-            for query in queries:
-                query = query.strip()
-                if query.upper().startswith("SET"):
-                    set_statements.append(query)
-                else:
-                    main_query = query
+        main_query = None  # Initialize as None to avoid overwriting
 
+        # Split the user query by semicolon
+        queries = user_query.split(";")
+
+        for query in queries:
+            query = query.strip()
+            if not query:  # Skip empty queries resulting from split
+                continue
+            if query.upper().startswith("SET"):
+                set_statements.append(query)
+            else:
+                main_query = query  # Assign the last non-SET query as main_query
         # Execute SET statements
         with connection.cursor() as cur:
             for set_statement in set_statements:
@@ -191,6 +193,7 @@ def process_query(user_query, relations):
         # Get base query plan
         with connection.cursor() as cur:
             try:
+                print(f"Executing main query: {main_query}")
                 # Execute query and get results
                 explain_query_str = f"EXPLAIN (ANALYZE, COSTS, SETTINGS, VERBOSE, BUFFERS, SUMMARY, FORMAT JSON) {main_query};"
                 cur.execute(explain_query_str)
@@ -215,11 +218,15 @@ def process_query(user_query, relations):
         plan_json_name = "static/plan" + str(time.time()) + ".json"
         with open(plan_json_name, "w") as f:
             json.dump(plan, f)
-
+        print("saved the QEP!")
         result["plan_data_path"] = plan_json_name
+        print("saved the QEP!123")
         # parse results for summary for plan
         result["summary_data"] = get_plan_summary(plan)
+
+        print("asdasdas")
         # get natural explanation for plan
+
         result["natural_explain"] = get_natural_explanation(plan)
         # get hints for query
         result["hints"] = get_hints(plan)
@@ -232,9 +239,12 @@ def process_query(user_query, relations):
             # Add hints at the beginning of the query if not present
             modified_query = f"/*+ {hints} */ {user_query}"
         result["query_with_hints"] = modified_query
-        specific_what_if, general_what_if = generate_what_if_questions(result["hints"])
-        result["specific_what_if"] = specific_what_if
-        result["general_what_if"] = general_what_if
+        if not set_statements:
+            specific_what_if, general_what_if = generate_what_if_questions(
+                result["hints"]
+            )
+            result["specific_what_if"] = specific_what_if
+            result["general_what_if"] = general_what_if
 
     except OperationalError:
         return True, {

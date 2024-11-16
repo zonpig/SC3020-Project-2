@@ -990,7 +990,7 @@ def run_query(query, relations):
 
         result = {"query": query}
 
-        has_error, response = process_query(query, relations)
+        has_error, response = process_query(query)
         if has_error:
             result["error"] = response["msg"]
         else:
