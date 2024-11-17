@@ -32,6 +32,65 @@ Note that we shall be running the project.py file (either from command prompt or
 Make sure your code follows good coding practice: sufficient comments, proper variable/function naming,
 etc. We will execute the software to check its correctness using different query sets and dataset to check for the generality of the solution. We will also check quality of algorithm design w.r.t processing of the query plans and what-if questions.
 
+## Setup Python Environment
+
+To install pygraphviz on mac, run the following commands:
+
+```bash
+brew install graphviz
+pip3 install \
+    --config-setting="--global-option=build_ext" \
+    --config-setting="--global-option=-I$(brew --prefix graphviz)/include/" \
+    --config-setting="--global-option=-L$(brew --prefix graphviz)/lib/" \
+    --use-pep517 \
+    pygraphviz
+```
+
+To install pygraphviz on windows, do the following steps:
+
+1. Go to the website `https://www.graphviz.org/download/` and download the 64-bit EXE installer for Windows.
+2. Add Graphviz to PATH
+    1) Open System Properties: Press `Win + R`, type `sysdm.cpl`, and press **Enter**.
+    2) Go to the **Advanced** tab and click on **Environment Variables**.
+    3) Under **System Variables**, find the **Path variable** and click **Edit**.
+    4) Click **New** and add the following paths:
+       - `C:\Program Files\Graphviz\bin`
+       - `C:\Program Files\Graphviz\include`
+       - `C:\Program Files\Graphviz\lib`
+    6) Click **OK** to save the changes and close the windows.
+3. Run the following command in a new command prompt
+
+```bash
+pip install pygraphviz --global-option=build_ext --global-option="-I<C:\Program Files\Graphviz\include>" --global-option="-L<C:\Program Files\Graphviz\lib>"
+```
+
+4. You can verify your installation by running the following code in Python:
+
+```bash
+import pygraphviz as pgv
+print(pgv.__version__)
+```
+
+For our case, we utilise python venv to create a virtual environment. To set it up and activate it, run the following commands:
+
+Mac 
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+Windows
+```bash
+python -m venv venv
+.\venv\Scripts\activate.bat
+```
+
+To install the required packages, run the following command:
+
+```bash
+pip install -r requirements.txt
+```
+
 ## Creating TPC-H database in PostgreSQL
 
 Download TPC-H_Tools_v3.0.1.zip
@@ -44,7 +103,7 @@ docker compose create
 docker compose start
 ```
 
-After starting the docker environment, connect the server to pgadmin and create a new database called **TPC-H**.
+After starting the docker environment, we would have a new PostgreSQL database instance running on port 5433 and set up with an empty TPC-H database.
 
 To create the tables in postgresql, run the following commands:
 
@@ -52,7 +111,7 @@ To create the tables in postgresql, run the following commands:
 python utils/create_tables.py
 ```
 
-To load data into the tables, run the following commands:
+To load data into the tables (provided you have the cleaned .csv that removed the extra “|” character at the end of each line), run the following commands:
 
 ```bash
 python utils/load_data.py
@@ -90,50 +149,11 @@ class Database:
             cls.connection = psycopg2.connect(
                 host="localhost",
                 database="TPC-H",
-                user="postgres", # Change this to your username
-                password="password", # Change this to your password
+                user="postgres", 
+                password="password", 
                 port="5433",
             )
         return cls.connection
-```
-
-## Note
-
-To install pygraphviz on mac, run the following commands:
-
-```bash
-brew install graphviz
-pip3 install \
-    --config-setting="--global-option=build_ext" \
-    --config-setting="--global-option=-I$(brew --prefix graphviz)/include/" \
-    --config-setting="--global-option=-L$(brew --prefix graphviz)/lib/" \
-    --use-pep517 \
-    pygraphviz
-```
-
-To install pygraphviz on windows, do the following steps:
-
-1. Go to the website `https://www.graphviz.org/download/` and download the 64-bit EXE installer for Windows.
-2. Add Graphviz to PATH
-    1) Open System Properties: Press `Win + R`, type `sysdm.cpl`, and press **Enter**.
-    2) Go to the **Advanced** tab and click on **Environment Variables**.
-    3) Under **System Variables**, find the **Path variable** and click **Edit**.
-    4) Click **New** and add the following paths:
-       - `C:\Program Files\Graphviz\bin`
-       - `C:\Program Files\Graphviz\include`
-       - `C:\Program Files\Graphviz\lib`
-    6) Click **OK** to save the changes and close the windows.
-3. Run the following command in a new command prompt
-
-```bash
-pip install pygraphviz --global-option=build_ext --global-option="-I<C:\Program Files\Graphviz\include>" --global-option="-L<C:\Program Files\Graphviz\lib>"
-```
-
-4. You can verify your installation by running the following code in Python:
-
-```bash
-import pygraphviz as pgv
-print(pgv.__version__)
 ```
 
 References:

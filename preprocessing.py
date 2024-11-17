@@ -16,7 +16,7 @@ class Database:
     database = "TPC-H"  # Default database
 
     @classmethod
-    def set_database(cls, new_database):
+    def set_database(cls, new_database: str):
         """
         Updates the database name and resets the connection.
         """

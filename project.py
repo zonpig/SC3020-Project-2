@@ -113,7 +113,7 @@ def load_schemas_and_queries(_):
     State("schema-dropdown", "value"),
     prevent_initial_call=True,
 )
-def set_database(n_clicks, selected_schema):
+def set_database(n_clicks, selected_schema: str):
     if n_clicks is None:
         raise PreventUpdate
     if not selected_schema:
