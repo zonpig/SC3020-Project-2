@@ -146,9 +146,9 @@ class Database:
     @classmethod
     def get_connection(cls):
         if cls.connection is None:
-            cls.connection = psycopg2.connect(
+            cls.connection = psycopg.connect(
                 host="localhost",
-                database="TPC-H",
+                dbname="TPC-H",
                 user="postgres", 
                 password="password", 
                 port="5433",

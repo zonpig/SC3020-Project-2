@@ -6,21 +6,21 @@ import time
 from collections import deque
 from typing import Tuple
 
-import psycopg2
-from psycopg2 import OperationalError, ProgrammingError
+import psycopg
+from psycopg import OperationalError, ProgrammingError
 
 
 ####################################### Database Connection #######################################
 class Database:
     connection = None
-    database = "TPC-H"  # Default database
+    dbname = "TPC-H"  # Default database
 
     @classmethod
     def set_database(cls, new_database: str):
         """
         Updates the database name and resets the connection.
         """
-        cls.database = new_database
+        cls.dbname = new_database
         # Close the existing connection if there is one
         if cls.connection is not None:
             cls.connection.close()
@@ -32,9 +32,9 @@ class Database:
         Returns a connection to the current database.
         """
         if cls.connection is None:
-            cls.connection = psycopg2.connect(
+            cls.connection = psycopg.connect(
                 host="localhost",
-                database=cls.database,
+                dbname=cls.dbname,
                 user="postgres",
                 password="password",
                 port="5433",

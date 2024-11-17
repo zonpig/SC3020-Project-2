@@ -1,9 +1,9 @@
-import psycopg2
+import psycopg
 
 # Database connection details
-connection = psycopg2.connect(
+connection = psycopg.connect(
     host="localhost",
-    database="TPC-H",
+    dbname="TPC-H",
     user="postgres",
     password="password",
     port="5433",
